@@ -24,3 +24,8 @@ Thumbs.db
 
 # Local tooling
 .tools/
+
+# Local secrets and machine-specific config
+.env
+config.properties
+*.properties

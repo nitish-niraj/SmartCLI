@@ -2,6 +2,7 @@ package com.lpu.smartcli.ui;
 
 import com.lpu.smartcli.core.Command;
 import com.lpu.smartcli.core.ErrorHandler;
+import com.lpu.smartcli.commands.OsCommand;
 import com.lpu.smartcli.data.FileSystem;
 import com.lpu.smartcli.data.HistoryDatabase;
 import com.lpu.smartcli.data.SessionManager;
@@ -24,6 +25,7 @@ public class ConsoleTerminal {
         System.out.println("Type 'help' to see all commands. Type 'exit' to quit.");
 
         Scanner scanner = new Scanner(System.in);
+        OsCommand.setScanner(scanner);
         CommandParser parser = new CommandParser();
         AutoCompleter autoCompleter = new AutoCompleter(parser.getRegistry());
 

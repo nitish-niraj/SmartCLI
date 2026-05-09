@@ -2,24 +2,40 @@ package com.lpu.smartcli.commands;
 
 import com.lpu.smartcli.core.Command;
 import com.lpu.smartcli.data.FileSystem;
+import com.lpu.smartcli.utils.SafetyFilter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class OsCommand implements Command {
+    private static Scanner sharedScanner;
+
     private final String[] tokens;
 
     public OsCommand(String[] tokens) {
         this.tokens = tokens == null ? new String[0] : tokens.clone();
     }
 
+    public static void setScanner(Scanner scanner) {
+        sharedScanner = scanner;
+    }
+
     @Override
     public void execute(String[] args, FileSystem fs) {
         String commandLine = String.join(" ", tokens).trim();
         if (commandLine.isEmpty()) {
+            return;
+        }
+
+        SafetyFilter.FilterResult filterResult = SafetyFilter.check(commandLine, sharedScanner);
+        if (filterResult == SafetyFilter.FilterResult.DANGEROUS
+                || filterResult == SafetyFilter.FilterResult.INTERACTIVE
+                || filterResult == SafetyFilter.FilterResult.BLOCKED) {
             return;
         }
 
@@ -30,7 +46,20 @@ public class OsCommand implements Command {
             Thread stdoutThread = streamOutput(process.getInputStream(), false);
             Thread stderrThread = streamOutput(process.getErrorStream(), true);
 
-            int exitCode = process.waitFor();
+            if (filterResult == SafetyFilter.FilterResult.LONG_RUNNING) {
+                boolean finished = process.waitFor(10, TimeUnit.SECONDS);
+                if (!finished) {
+                    System.out.println("[OS] Command timed out or requires interactive input — not supported.");
+                    process.destroyForcibly();
+                    stdoutThread.join();
+                    stderrThread.join();
+                    return;
+                }
+            } else {
+                process.waitFor();
+            }
+
+            int exitCode = process.exitValue();
             stdoutThread.join();
             stderrThread.join();
 
