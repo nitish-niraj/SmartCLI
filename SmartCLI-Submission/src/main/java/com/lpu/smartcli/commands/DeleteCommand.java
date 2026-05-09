@@ -12,6 +12,11 @@ public class DeleteCommand implements Command {
             return;
         }
 
+        if (!fs.fileExists(args[0])) {
+            ErrorHandler.fileNotFound(args[0]);
+            return;
+        }
+
         fs.deleteFile(args[0]);
     }
 

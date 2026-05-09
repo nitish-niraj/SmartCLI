@@ -12,6 +12,11 @@ public class CreateCommand implements Command {
             return;
         }
 
+        if (fs.fileExists(args[0])) {
+            ErrorHandler.alreadyExists(args[0]);
+            return;
+        }
+
         fs.createFile(args[0]);
     }
 

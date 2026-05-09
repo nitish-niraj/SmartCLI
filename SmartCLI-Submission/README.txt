@@ -34,6 +34,13 @@
  help                        Show all commands
  exit                        Exit the application
 
+ Unknown commands are passed to the operating system shell.
+ Examples:
+     dir
+     ipconfig
+     git status
+     java -version
+
 ------------------------------------------------
  EXAMPLE SESSION
 ------------------------------------------------
@@ -41,6 +48,7 @@
  smartcli> write notes.txt Hello from CAP477
  smartcli> read notes.txt
  smartcli> list
+ smartcli> dir
  smartcli> delete notes.txt
  smartcli> exit
 

@@ -7,7 +7,7 @@ public class WriteCommand implements Command {
     @Override
     public void execute(String[] args, FileSystem fs) {
         if (args.length < 3) {
-            ErrorHandler.missingArgument("write", "filename and content");
+            ErrorHandler.missingArgs("write <filename> <content>");
             return;
         }
 

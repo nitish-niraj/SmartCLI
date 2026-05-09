@@ -1,77 +1,63 @@
-# SmartCLI
+# Smart Command Line System
 
-SmartCLI is a cross-platform Smart Command Line System built as a Java 17 Maven project.
+SmartCLI is a Java 17 command-line interpreter built for CAP477 at LPU. It supports custom in-memory file commands and can pass unknown commands through to the real operating system shell.
 
-## Project Overview
+## Features
 
-This repository currently contains the Phase 0 foundation only: package layout, contracts, placeholders, and Maven setup for a production-ready starting architecture.
-
-## Planned Features
-
-- Smart command parsing and execution
-- Command history and session management
-- Autocorrect, fuzzy search, and autocomplete
-- Cross-platform shell support
-- Plugin architecture
-- Storage for aliases and configuration
-
-## Tech Stack
-
-- Java 17
-- Maven
-- JavaFX
-- JLine3
-- SQLite JDBC
-- Gson
-- Apache Commons Lang3
-- SLF4J + Logback
-- JUnit 5
-
-## Clone
-
-```bash
-git clone https://github.com/nitish-niraj/SmartCLI.git
-cd SmartCLI
-```
+- Built-in commands: `create`, `write`, `read`, `delete`, `list`, `help`, `exit`
+- In-memory file system backed by `HashMap<String, String>`
+- Command parser and command registry using OOP
+- Autocomplete, autocorrect, and fuzzy search components
+- OS command passthrough using `ProcessBuilder`
+- Cross-platform shell execution: `cmd.exe /c` on Windows, `sh -c` on Linux/macOS
+- JUnit test suite with 109 passing tests
 
 ## Build
 
-```bash
-mvn compile
+```powershell
+.\.tools\apache-maven-3.9.9\bin\mvn.cmd clean package -DskipTests
 ```
 
 ## Run
 
-```bash
-java -jar target/SmartCLI.jar
+```powershell
+java -jar target\SmartCLI.jar
 ```
 
-## Package Structure
+For correct Unicode box display on Windows CMD:
+
+```cmd
+chcp 65001
+java -Dfile.encoding=UTF-8 -jar target\SmartCLI.jar
+```
+
+## Commands
 
 ```text
-src/main/java/com/lpu/smartcli/
-  core/
-  data/
-  ui/
-  smart/
-  integration/
-  plugins/
-  storage/
-  utils/
+create <filename>           Create a new file
+write  <filename> <text>    Write text to a file
+read   <filename>           Read a file
+delete <filename>           Delete a file
+list                        List all files in memory
+help                        Show all commands
+exit                        Exit the application
+```
 
-src/test/java/com/lpu/smartcli/
+Any command that is not built in is passed to the real OS shell:
+
+```text
+smartcli> dir
+smartcli> ipconfig
+smartcli> git status
+smartcli> java -version
 ```
 
 ## Team
 
-- Nitish Kumar (Leader RD2536B60)
+- Nitish Kumar (RD2536B60) — Team Leader
 - Nikita Chauhan (RD2526B37)
 - Ayush Kumar (RD2526B41)
 
 Supervisor: Dr. Prince Arora
 
 Course: CAP477, LPU
-
-## Phase Note
-
-This phase contains only foundational architecture.

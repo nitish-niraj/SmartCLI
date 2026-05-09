@@ -2,7 +2,6 @@ package com.lpu.smartcli.data;
 
 import com.lpu.smartcli.core.Command;
 import com.lpu.smartcli.core.ErrorHandler;
-import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class DeleteCommand implements Command {
@@ -10,13 +9,13 @@ public class DeleteCommand implements Command {
     @Override
     public void execute(String[] args, FileSystem fs) {
         if (args == null || args.length == 0 || args[0].isBlank()) {
-            ErrorHandler.missingArgs("delete <filename>");
+            System.out.println("ERROR: Missing arguments. Usage: delete <filename>");
             return;
         }
 
         String filename = args[0];
         if (!fs.fileExists(filename)) {
-            ErrorHandler.fileNotFound(filename);
+            System.out.println("ERROR: File not found: " + filename);
             return;
         }
 
@@ -25,12 +24,8 @@ public class DeleteCommand implements Command {
         String confirmation = scanner.nextLine();
 
         if ("yes".equalsIgnoreCase(confirmation.trim())) {
-            try {
-                fs.deleteFile(filename);
-                System.out.println("File '" + filename + "' deleted successfully.");
-            } catch (FileNotFoundException e) {
-                ErrorHandler.fileNotFound(filename);
-            }
+            fs.deleteFile(filename);
+            System.out.println("File '" + filename + "' deleted successfully.");
         } else {
             System.out.println("Delete cancelled.");
         }

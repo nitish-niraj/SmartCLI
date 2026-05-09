@@ -3,10 +3,10 @@ package com.lpu.smartcli.ui;
 import com.lpu.smartcli.commands.CreateCommand;
 import com.lpu.smartcli.commands.DeleteCommand;
 import com.lpu.smartcli.commands.ListCommand;
+import com.lpu.smartcli.commands.OsCommand;
 import com.lpu.smartcli.commands.ReadCommand;
 import com.lpu.smartcli.commands.WriteCommand;
 import com.lpu.smartcli.core.Command;
-import com.lpu.smartcli.core.ErrorHandler;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -35,8 +35,7 @@ public class CommandParser {
 
         Command found = registry.get(tokens.get(0));
         if (found == null) {
-            ErrorHandler.unknownCommand(tokens.get(0));
-            return null;
+            return new OsCommand(tokens.toArray(new String[0]));
         }
 
         return found;

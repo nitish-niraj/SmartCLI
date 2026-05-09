@@ -12,6 +12,11 @@ public class ReadCommand implements Command {
             return;
         }
 
+        if (!fs.fileExists(args[0])) {
+            ErrorHandler.fileNotFound(args[0]);
+            return;
+        }
+
         String content = fs.readFile(args[0]);
         if (content == null) {
             return;

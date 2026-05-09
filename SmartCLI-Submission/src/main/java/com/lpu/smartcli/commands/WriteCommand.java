@@ -12,6 +12,11 @@ public class WriteCommand implements Command {
             return;
         }
 
+        if (!fs.fileExists(args[0])) {
+            ErrorHandler.fileNotFound(args[0]);
+            return;
+        }
+
         StringBuilder content = new StringBuilder();
         for (int i = 1; i < args.length; i++) {
             if (i > 1) {

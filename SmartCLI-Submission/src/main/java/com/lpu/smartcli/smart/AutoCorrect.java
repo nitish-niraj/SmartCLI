@@ -1,5 +1,9 @@
 package com.lpu.smartcli.smart;
 
+import com.lpu.smartcli.core.Command;
+import com.lpu.smartcli.core.CommandRegistry;
+import com.lpu.smartcli.data.FileSystem;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -51,12 +55,26 @@ public class AutoCorrect {
         return Optional.empty();
     }
 
-    public static void main(String[] args) {
-        List<String> knownCommands = List.of("git", "create", "write", "read", "delete");
+    public static Optional<String> suggest(String input) {
+        List<String> knownCommands = CommandRegistry.getInstance().getAllCommandNames();
+        return suggest(input, knownCommands);
+    }
 
-        printSuggestion(suggest("gti", knownCommands));
-        printSuggestion(suggest("craete", knownCommands));
-        printSuggestion(suggest("xyz", knownCommands));
+    public static void main(String[] args) {
+        CommandRegistry.getInstance().register("git", new Command() {
+            @Override
+            public void execute(String[] args, FileSystem fs) {
+            }
+
+            @Override
+            public String getDescription() {
+                return "git — Git command";
+            }
+        });
+
+        printSuggestion(suggest("gti"));
+        printSuggestion(suggest("craete"));
+        printSuggestion(suggest("xyz"));
     }
 
     private static void printSuggestion(Optional<String> suggestion) {
