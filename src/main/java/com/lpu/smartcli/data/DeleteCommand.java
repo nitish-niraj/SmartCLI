@@ -38,6 +38,6 @@ public class DeleteCommand implements Command {
      */
     @Override
     public String getDescription() {
-        return "Deletes a file or directory";
+        return "Deletes a file from the system";
     }
 }

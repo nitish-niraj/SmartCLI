@@ -36,6 +36,6 @@ public class ReadCommand implements Command {
      */
     @Override
     public String getDescription() {
-        return "Reads and displays the content of a file";
+        return "Reads and displays file content";
     }
 }

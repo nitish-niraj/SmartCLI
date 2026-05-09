@@ -1,5 +1,8 @@
 package com.lpu.smartcli.smart;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
  * AutoCorrect placeholder for command auto-correction functionality.
  * Implementation to be added in Phase 1.
@@ -16,22 +19,8 @@ public class AutoCorrect {
      * @return the suggested correct command
      * @todo Implement Levenshtein distance or similar algorithm
      */
-    public String suggestCorrection(String misspelledCommand) {
-        // TODO: Implement auto-correction algorithm
-        // TODO: Use Levenshtein distance or similar
-        // TODO: Return closest matching command
-        return misspelledCommand;
-    }
-
-    /**
-     * Checks if a command should be auto-corrected.
-     *
-     * @param command the command to check
-     * @return true if auto-correction should be applied
-     * @todo Implement threshold-based checking
-     */
-    public boolean shouldAutoCorrect(String command) {
-        // TODO: Implement threshold-based decision making
-        return false;
+    public Optional<String> suggest(String input, List<String> knownCommands) {
+        // TODO: Implement suggestion generation based on known commands.
+        return Optional.empty();
     }
 }

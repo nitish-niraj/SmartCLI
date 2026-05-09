@@ -23,11 +23,7 @@ public class ExitCommand implements Command {
      */
     @Override
     public void execute(String[] args, FileSystem fs) {
-        // TODO: Implement exit command execution
-        // TODO: Save current session
-        // TODO: Cleanup resources
-        // TODO: Gracefully shutdown the application
-        System.exit(0);
+        // TODO: Implement graceful exit command behavior.
     }
 
     /**

@@ -101,6 +101,7 @@
     </dependencies>
 
     <build>
+        <finalName>SmartCLI</finalName>
         <plugins>
             <!-- Maven Compiler Plugin for Java 17 -->
             <plugin>

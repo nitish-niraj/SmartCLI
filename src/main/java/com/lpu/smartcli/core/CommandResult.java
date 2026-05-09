@@ -1,7 +1,5 @@
 package com.lpu.smartcli.core;
 
-import java.time.LocalDateTime;
-
 /**
  * CommandResult encapsulates the result of command execution.
  * Contains stdout, stderr, exit code, and execution timestamp.
@@ -11,10 +9,10 @@ import java.time.LocalDateTime;
  */
 public class CommandResult {
 
-    private final String stdout;
-    private final String stderr;
-    private final int exitCode;
-    private final LocalDateTime timestamp;
+    private String stdout;
+    private String stderr;
+    private int exitCode;
+    private long timestamp;
 
     /**
      * Constructs a CommandResult with all parameters.
@@ -23,11 +21,11 @@ public class CommandResult {
      * @param stderr   the standard error from command execution
      * @param exitCode the exit code of the command
      */
-    public CommandResult(String stdout, String stderr, int exitCode) {
-        this.stdout = stdout != null ? stdout : "";
-        this.stderr = stderr != null ? stderr : "";
+    public CommandResult(String stdout, String stderr, int exitCode, long timestamp) {
+        this.stdout = stdout;
+        this.stderr = stderr;
         this.exitCode = exitCode;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = timestamp;
     }
 
     /**
@@ -62,26 +60,43 @@ public class CommandResult {
      *
      * @return the timestamp of execution
      */
-    public LocalDateTime getTimestamp() {
+    public long getTimestamp() {
         return timestamp;
     }
 
     /**
-     * Checks if the command execution was successful.
+     * Sets stdout output.
      *
-     * @return true if exit code is 0, false otherwise
+     * @param stdout new stdout value
      */
-    public boolean isSuccess() {
-        return exitCode == 0;
+    public void setStdout(String stdout) {
+        this.stdout = stdout;
     }
 
-    @Override
-    public String toString() {
-        return "CommandResult{" +
-                "stdout='" + stdout + '\'' +
-                ", stderr='" + stderr + '\'' +
-                ", exitCode=" + exitCode +
-                ", timestamp=" + timestamp +
-                '}';
+    /**
+     * Sets stderr output.
+     *
+     * @param stderr new stderr value
+     */
+    public void setStderr(String stderr) {
+        this.stderr = stderr;
+    }
+
+    /**
+     * Sets process exit code.
+     *
+     * @param exitCode new exit code
+     */
+    public void setExitCode(int exitCode) {
+        this.exitCode = exitCode;
+    }
+
+    /**
+     * Sets result timestamp.
+     *
+     * @param timestamp new timestamp value
+     */
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }

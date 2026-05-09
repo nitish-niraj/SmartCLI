@@ -1,5 +1,7 @@
 package com.lpu.smartcli.ui;
 
+import com.lpu.smartcli.core.Command;
+
 /**
  * CommandParser parses command line input into command and arguments.
  * Handles tokenization and validation of user input.
@@ -18,32 +20,8 @@ public class CommandParser {
      * @todo Handle quotes and escaping
      * @todo Support pipes and redirection
      */
-    public ParsedCommand parse(String input) {
-        // TODO: Implement command line parsing
-        // TODO: Handle quoted arguments
-        // TODO: Support special characters
-        // TODO: Validate command syntax
-        return new ParsedCommand("", new String[]{});
-    }
-
-    /**
-     * Inner class to represent a parsed command.
-     */
-    public static class ParsedCommand {
-        private final String command;
-        private final String[] args;
-
-        public ParsedCommand(String command, String[] args) {
-            this.command = command;
-            this.args = args;
-        }
-
-        public String getCommand() {
-            return command;
-        }
-
-        public String[] getArgs() {
-            return args;
-        }
+    public Command parse(String rawInput) {
+        // TODO: Parse raw command input and map it to command implementations.
+        return null;
     }
 }

@@ -16,10 +16,8 @@ public class HistoryDatabase {
      * @todo Implement SQLite database integration
      * @todo Add timestamp to history entries
      */
-    public void saveCommand(String command) {
-        // TODO: Implement command history saving to SQLite database
-        // TODO: Add timestamp and sequence number
-        // TODO: Implement history persistence
+    public void addEntry(String command, String sessionId) {
+        // TODO: Store command entry with session linkage in SQLite.
     }
 
     /**
@@ -28,9 +26,8 @@ public class HistoryDatabase {
      * @return the list of previous commands
      * @todo Implement history retrieval from database
      */
-    public java.util.List<String> getHistory() {
-        // TODO: Implement history retrieval from SQLite database
-        // TODO: Return in chronological order
+    public java.util.List<String> searchHistory(String query) {
+        // TODO: Search persisted command history by query.
         return new java.util.ArrayList<>();
     }
 
@@ -39,8 +36,9 @@ public class HistoryDatabase {
      *
      * @todo Implement history clearing
      */
-    public void clearHistory() {
-        // TODO: Implement history clearing from database
+    public java.util.List<String> getRecentHistory(int limit) {
+        // TODO: Return most recent history rows up to limit.
+        return new java.util.ArrayList<>();
     }
 
     /**
@@ -50,8 +48,7 @@ public class HistoryDatabase {
      * @return list of matching commands
      * @todo Implement history search functionality
      */
-    public java.util.List<String> searchHistory(String query) {
-        // TODO: Implement history search with pattern matching
-        return new java.util.ArrayList<>();
+    public void clearHistory() {
+        // TODO: Remove persisted command history entries.
     }
 }

@@ -1,243 +1,26 @@
 # Maven
 target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
-.mvn/wrapper/maven-wrapper.jar
-
-# Compiled class file
-*.class
-
-# Log file
-*.log
-logs/
-log/
-
-# Package Files
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# Crash dumps
-hs_err_pid*
 
 # IntelliJ IDEA
 .idea/
 *.iml
-*.iws
-*.ipr
-out/
-*.swp
-*.swo
-*~
 
 # Eclipse
 .classpath
 .project
-.settings/
-.metadata
-bin/
-*.tmp
-*.bak
-*.swp
-*~.nib
-local.properties
-.cproject
-.c9/
-*.launch
-.pydevproject
-.rope-project
-.texlipse
 
-# Visual Studio Code
+# VS Code
 .vscode/
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-*.code-workspace
-*.vsix
 
-# VS Code Extension specifics
-vscode-extension.json
-launch.json
-settings.json
-extensions.json
-*.vsix
+# Java
+*.class
 
-# NetBeans
-nbproject/
-.nb-gradle/
-nbbuild/
-dist/
-nbdist/
-.nb-gradle/
+# Logs
+*.log
 
-# Sublime Text
-*.sublime-project
-*.sublime-workspace
-
-# Vim
-.*.swp
-.*.swo
-*~
-
-# Emacs
-*~
-\#*\#
-.\#*
-
-# macOS
+# OS files
 .DS_Store
-.AppleDouble
-.LSOverride
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-Desktop.ini
 
-# Windows
-Thumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# Linux
-.~*
-.directory
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-smartcli.db
-
-# Config files (local overrides)
-config/
-local.properties
-application-local.properties
-
-# Temporary files
-tmp/
-temp/
-*.temp
-*.bak
-*.backup
-
-# Build artifacts
-build/
-dist/
-*.o
-*.a
-*.so
-*.lib
-*.dll
-
-# Test reports
-surefire-reports/
-jacoco.xml
-coverage/
-
-# IDE runtime files
-.run/
-.vscode-workspace
-
-# Application logs
-application.log*
-error.log*
-
-# Session files
-.session
-.sessions
-
-# History files
-.history
-.histories
-
-# Generated files
-.generated/
-generated/
-
-# Dependencies
-lib/
-libs/
-vendor/
-
-# OS X
-.AppleDouble
-.LSOverride
-._*
-
-# Node (if Webpack is used in the future)
-node_modules/
-npm-debug.log
-yarn.lock
-package-lock.json
-
-# Gradle wrapper
-.gradle
-gradle/
-
-# JetBrains
-.idea
-*.iml
-*.iws
-
-# Ignore all local .classpath files
-.classpath
-
-# Ignore all local .project files
-.project
-
-# Maven wrapper
-.mvn
-
-# Certificates and Keys (for security)
-*.pem
-*.key
-*.crt
-*.pfx
-*.jks
-*.keystore
-
-# Environment files
-.env
-.env.local
-.env.*.local
-
-# Cache
-.cache/
-.cachedir/
-
-# Backup files
-*.bkp
-*.backup
-
-# Documentation build output
-docs/build/
-docs/_build/
-site/
-
-# IDE specific files not covered yet
-.vscode-settings.json
-.editorconfig
-.prettierrc
-.eslintrc
-
-# Application specific
-smartcli-data/
-smartcli-logs/
-smartcli-config/
-plugins/
+# Local tooling
+.tools/

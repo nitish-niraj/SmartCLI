@@ -1,6 +1,8 @@
 package com.lpu.smartcli.core;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * CommandExecutor handles asynchronous command execution.
@@ -11,6 +13,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public class CommandExecutor {
 
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
+
     /**
      * Executes a command asynchronously.
      *
@@ -20,48 +24,10 @@ public class CommandExecutor {
      * @todo Handle timeout scenarios
      * @todo Implement proper exception handling
      */
-    public CompletableFuture<CommandResult> executeAsync(Command command) {
-        // TODO: Implement async execution logic
-        return CompletableFuture.supplyAsync(() -> {
-            // TODO: Execute command and return result
-            return new CommandResult("", "", 0);
-        });
-    }
-
-    /**
-     * Executes a command synchronously (blocking).
-     *
-     * @param command the command to execute
-     * @return the CommandResult after execution
-     * @todo Implement sync command execution
-     */
-    public CommandResult executeSync(Command command) {
-        // TODO: Implement sync execution logic with timeout handling
-        return new CommandResult("", "", 0);
-    }
-
-    /**
-     * Executes a command with a timeout.
-     *
-     * @param command         the command to execute
-     * @param timeoutSeconds  the timeout in seconds
-     * @return a CompletableFuture containing the CommandResult
-     * @todo Implement timeout handling
-     */
-    public CompletableFuture<CommandResult> executeWithTimeout(Command command, long timeoutSeconds) {
-        // TODO: Implement execution with timeout using CompletableFuture.orTimeout()
-        return executeAsync(command);
-    }
-
-    /**
-     * Cancels a running command execution.
-     *
-     * @param future the future representing the execution
-     * @return true if cancellation was successful, false otherwise
-     * @todo Implement cancellation logic
-     */
-    public boolean cancel(CompletableFuture<CommandResult> future) {
-        // TODO: Implement cancellation logic
-        return future.cancel(true);
+    public CompletableFuture<CommandResult> executeAsync(String[] command) {
+        // TODO: Execute command asynchronously via ProcessBuilder.
+        // TODO: Capture stdout/stderr and populate CommandResult.
+        // TODO: Handle execution timeout, cancellation, and cleanup.
+        return CompletableFuture.completedFuture(new CommandResult("", "", -1, System.currentTimeMillis()));
     }
 }

@@ -19,83 +19,23 @@ public class PlatformDetector {
         UNKNOWN
     }
 
-    private static OSType detectedOS;
-
-    static {
-        detectedOS = detectOS();
-    }
-
     /**
-     * Detects the current operating system.
+     * Detects the host operating system.
      *
-     * @return the detected OSType
-     * @todo Implement OS detection logic
+     * @return detected OS type
      */
-    public static OSType detectOS() {
-        // TODO: Implement actual OS detection using System.getProperty("os.name")
-        String osName = System.getProperty("os.name", "").toLowerCase();
-        
-        if (osName.contains("win")) {
-            return OSType.WINDOWS;
-        } else if (osName.contains("nix") || osName.contains("nux")) {
-            return OSType.LINUX;
-        } else if (osName.contains("mac")) {
-            return OSType.MAC;
-        }
-        
+    public OSType detectOS() {
+        // TODO: Implement robust OS detection logic.
         return OSType.UNKNOWN;
     }
 
     /**
-     * Gets the current detected OS.
+     * Returns the shell invocation prefix for the current platform.
      *
-     * @return the detected OSType
+     * @return shell prefix array (for example {"cmd", "/c"})
      */
-    public static OSType getOS() {
-        return detectedOS;
-    }
-
-    /**
-     * Returns the shell prefix for the current platform.
-     * Windows: cmd /c
-     * Linux/Mac: sh -c
-     *
-     * @return the shell prefix command
-     * @todo Implement shell prefix logic
-     */
-    public static String getShellPrefix() {
-        // TODO: Return appropriate shell prefix based on OS
-        return switch (detectedOS) {
-            case WINDOWS -> "cmd /c";
-            case LINUX, MAC -> "sh -c";
-            case UNKNOWN -> "";
-        };
-    }
-
-    /**
-     * Checks if the current OS is Windows.
-     *
-     * @return true if OS is Windows, false otherwise
-     */
-    public static boolean isWindows() {
-        return detectedOS == OSType.WINDOWS;
-    }
-
-    /**
-     * Checks if the current OS is Linux.
-     *
-     * @return true if OS is Linux, false otherwise
-     */
-    public static boolean isLinux() {
-        return detectedOS == OSType.LINUX;
-    }
-
-    /**
-     * Checks if the current OS is macOS.
-     *
-     * @return true if OS is macOS, false otherwise
-     */
-    public static boolean isMac() {
-        return detectedOS == OSType.MAC;
+    public String[] getShellPrefix() {
+        // TODO: Return platform-specific shell prefix.
+        return new String[0];
     }
 }

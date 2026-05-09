@@ -20,11 +20,7 @@ public class CreateCommand implements Command {
      */
     @Override
     public void execute(String[] args, com.lpu.smartcli.data.FileSystem fs) {
-        // TODO: Implement create command execution
-        // TODO: Parse arguments (file path, type, permissions, etc.)
-        // TODO: Validate file path
-        // TODO: Create file or directory
-        // TODO: Return success/failure result
+        // TODO: Implement create command behavior.
     }
 
     /**
@@ -34,6 +30,6 @@ public class CreateCommand implements Command {
      */
     @Override
     public String getDescription() {
-        return "Creates a new file or directory";
+        return "Creates a new file";
     }
 }

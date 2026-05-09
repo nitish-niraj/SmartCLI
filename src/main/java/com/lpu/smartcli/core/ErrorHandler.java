@@ -9,19 +9,15 @@ package com.lpu.smartcli.core;
  */
 public class ErrorHandler {
 
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ErrorHandler.class);
-
     /**
      * Handles unknown command error.
      *
      * @param commandName the name of the unknown command
      * @return error message
      */
-    public static String unknownCommand(String commandName) {
-        // TODO: Implement detailed error message formatting
-        String message = "Error: Unknown command '" + commandName + "'. Type 'help' for available commands.";
-        logger.warn(message);
-        return message;
+    public static void unknownCommand(String cmd) {
+        // TODO: Route to centralized logger and UI error presenter.
+        System.out.println("Unknown command: " + cmd);
     }
 
     /**
@@ -30,11 +26,9 @@ public class ErrorHandler {
      * @param filePath the path of the file that was not found
      * @return error message
      */
-    public static String fileNotFound(String filePath) {
-        // TODO: Implement file not found handling
-        String message = "Error: File not found: '" + filePath + "'";
-        logger.warn(message);
-        return message;
+    public static void fileNotFound(String name) {
+        // TODO: Use localization-ready error templates.
+        System.out.println("File not found: " + name);
     }
 
     /**
@@ -44,11 +38,9 @@ public class ErrorHandler {
      * @param expectedArgs the expected arguments
      * @return error message
      */
-    public static String missingArgs(String commandName, String expectedArgs) {
-        // TODO: Implement missing arguments handling
-        String message = "Error: Command '" + commandName + "' requires: " + expectedArgs;
-        logger.warn(message);
-        return message;
+    public static void missingArgs(String usage) {
+        // TODO: Print command-specific usage with examples.
+        System.out.println("Missing arguments. Usage: " + usage);
     }
 
     /**
@@ -58,22 +50,8 @@ public class ErrorHandler {
      * @param exception the exception that occurred
      * @return error message
      */
-    public static String executionError(String commandName, Exception exception) {
-        // TODO: Implement general execution error handling
-        String message = "Error executing '" + commandName + "': " + exception.getMessage();
-        logger.error(message, exception);
-        return message;
-    }
-
-    /**
-     * Logs and formats an error message.
-     *
-     * @param level the log level (INFO, WARN, ERROR)
-     * @param message the error message
-     * @return formatted error message
-     */
-    public static String logError(String level, String message) {
-        // TODO: Implement log level based error handling
-        return "[" + level + "] " + message;
+    public static void executionError(String detail) {
+        // TODO: Attach error codes and telemetry metadata.
+        System.out.println("Execution error: " + detail);
     }
 }
