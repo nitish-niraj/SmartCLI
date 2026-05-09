@@ -1,36 +1,29 @@
 package com.lpu.smartcli.core;
 
-/**
- * WriteCommand placeholder for file writing functionality.
- * Implementation to be added in Phase 1.
- *
- * @author SmartCLI Team
- * @version 1.0.0
- */
+import com.lpu.smartcli.data.FileSystem;
+
 public class WriteCommand implements Command {
 
-    /**
-     * Executes the write command.
-     *
-     * @param args the command line arguments
-     * @param fs   the file system context for file operations
-     * @todo Implement file writing logic
-     * @todo Add argument validation
-     * @todo Handle different file types
-     * @todo Implement append vs overwrite modes
-     */
     @Override
-    public void execute(String[] args, com.lpu.smartcli.data.FileSystem fs) {
-        // TODO: Implement write command behavior.
+    public void execute(String[] args, FileSystem fs) {
+        if (args.length < 3) {
+            ErrorHandler.missingArgs("write <filename> <content>");
+            return;
+        }
+
+        String filename = args[1];
+        if (!fs.fileExists(filename)) {
+            ErrorHandler.fileNotFound(filename);
+            return;
+        }
+
+        String content = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
+        fs.writeFile(filename, content);
+        System.out.println("[OK] Written to '" + filename + "'");
     }
 
-    /**
-     * Returns a description of the write command.
-     *
-     * @return the command description
-     */
     @Override
     public String getDescription() {
-        return "Writes content to a file";
+        return "write <filename> <content>   — writes content to a file";
     }
 }

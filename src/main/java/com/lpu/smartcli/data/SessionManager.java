@@ -1,42 +1,89 @@
 package com.lpu.smartcli.data;
 
-/**
- * SessionManager placeholder for session lifecycle management.
- * Implementation to be added in Phase 1.
- *
- * @author SmartCLI Team
- * @version 1.0.0
- */
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.UUID;
+
 public class SessionManager {
+    private final String sessionId;
+    private String currentDirectory;
+    private final LocalDateTime startTime;
+    private final HistoryDatabase history;
 
-    /**
-     * Gets the current session ID.
-     *
-     * @return the session ID
-     */
+    public SessionManager() {
+        this(new HistoryDatabase());
+    }
+
+    public SessionManager(HistoryDatabase history) {
+        if (history == null) {
+            throw new IllegalArgumentException("HistoryDatabase cannot be null");
+        }
+
+        this.sessionId = UUID.randomUUID().toString();
+        this.currentDirectory = System.getProperty("user.dir");
+        this.startTime = LocalDateTime.now();
+        this.history = history;
+    }
+
     public String getSessionId() {
-        // TODO: Generate and return stable session identifier.
-        return "";
+        return sessionId;
     }
 
-    /**
-     * Saves data to the current session.
-     *
-     * @param key   the key for the data
-     * @param value the value to store
-     * @todo Implement session data storage
-     */
-    public String getCurrentDir() {
-        // TODO: Return current working directory for session.
-        return "";
+    public String getCurrentDirectory() {
+        return currentDirectory;
     }
 
-    /**
-     * Ends the current session.
-     *
-     * @todo Implement session cleanup and persistence
-     */
-    public void changeDir(String path) {
-        // TODO: Validate and change current working directory.
+    public boolean changeDirectory(String path) {
+        if (path == null || path.isBlank()) {
+            return false;
+        }
+
+        try {
+            File file = new File(path);
+            if (!file.isAbsolute()) {
+                file = new File(currentDirectory, path);
+            }
+
+            if (file.exists() && file.isDirectory()) {
+                currentDirectory = file.getCanonicalPath();
+                return true;
+            }
+
+            System.err.println("ERROR: Directory not found: " + path);
+            return false;
+        } catch (IOException e) {
+            System.err.println("ERROR: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public void recordCommand(String commandText) {
+        if (commandText == null || commandText.isBlank()) {
+            return;
+        }
+
+        history.addEntry(commandText, sessionId);
+    }
+
+    public List<String> getSessionHistory() {
+        return history.getSessionHistory(sessionId);
+    }
+
+    public String getStartTime() {
+        return startTime.toString();
+    }
+
+    public long getSessionDurationSeconds() {
+        return ChronoUnit.SECONDS.between(startTime, LocalDateTime.now());
+    }
+
+    public String getSummary() {
+        return "Session ID : " + sessionId
+                + System.lineSeparator() + "Started    : " + startTime
+                + System.lineSeparator() + "Directory  : " + currentDirectory
+                + System.lineSeparator() + "Commands   : " + getSessionHistory().size();
     }
 }

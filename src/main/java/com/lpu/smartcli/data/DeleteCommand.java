@@ -1,43 +1,38 @@
 package com.lpu.smartcli.data;
 
 import com.lpu.smartcli.core.Command;
+import com.lpu.smartcli.core.ErrorHandler;
+import java.util.Scanner;
 
-/**
- * DeleteCommand placeholder for file deletion functionality.
- * Implementation to be added in Phase 1.
- *
- * @author SmartCLI Team
- * @version 1.0.0
- */
 public class DeleteCommand implements Command {
 
-    /**
-     * Executes the delete command.
-     *
-     * @param args the command line arguments
-     * @param fs   the file system context for file operations
-     * @todo Implement file deletion logic
-     * @todo Add argument validation
-     * @todo Implement confirmation prompts
-     * @todo Handle recursive deletion for directories
-     */
     @Override
     public void execute(String[] args, FileSystem fs) {
-        // TODO: Implement delete command execution
-        // TODO: Parse arguments (file path, force flag, recursive flag, etc.)
-        // TODO: Validate file path
-        // TODO: Request user confirmation if needed
-        // TODO: Delete file or directory
-        // TODO: Handle deletion errors
+        if (args == null || args.length == 0 || args[0].isBlank()) {
+            System.out.println("ERROR: Missing arguments. Usage: delete <filename>");
+            return;
+        }
+
+        String filename = args[0];
+        if (!fs.fileExists(filename)) {
+            System.out.println("ERROR: File not found: " + filename);
+            return;
+        }
+
+        System.out.print("Are you sure you want to delete '" + filename + "'? (yes/no): ");
+        Scanner scanner = new Scanner(System.in);
+        String confirmation = scanner.nextLine();
+
+        if ("yes".equalsIgnoreCase(confirmation.trim())) {
+            fs.deleteFile(filename);
+            System.out.println("File '" + filename + "' deleted successfully.");
+        } else {
+            System.out.println("Delete cancelled.");
+        }
     }
 
-    /**
-     * Returns a description of the delete command.
-     *
-     * @return the command description
-     */
     @Override
     public String getDescription() {
-        return "Deletes a file from the system";
+        return "delete <filename> — permanently removes a file";
     }
 }

@@ -1,35 +1,28 @@
 package com.lpu.smartcli.core;
 
-/**
- * CreateCommand placeholder for file/directory creation functionality.
- * Implementation to be added in Phase 1.
- *
- * @author SmartCLI Team
- * @version 1.0.0
- */
+import com.lpu.smartcli.data.FileSystem;
+
 public class CreateCommand implements Command {
 
-    /**
-     * Executes the create command.
-     *
-     * @param args the command line arguments
-     * @param fs   the file system context for file operations
-     * @todo Implement file/directory creation logic
-     * @todo Add argument validation
-     * @todo Add error handling
-     */
     @Override
-    public void execute(String[] args, com.lpu.smartcli.data.FileSystem fs) {
-        // TODO: Implement create command behavior.
+    public void execute(String[] args, FileSystem fs) {
+        if (args.length < 2) {
+            ErrorHandler.missingArgs("create <filename>");
+            return;
+        }
+
+        String filename = args[1];
+        if (fs.fileExists(filename)) {
+            ErrorHandler.alreadyExists(filename);
+            return;
+        }
+
+        fs.createFile(filename);
+        System.out.println("[OK] File created: '" + filename + "'");
     }
 
-    /**
-     * Returns a description of the create command.
-     *
-     * @return the command description
-     */
     @Override
     public String getDescription() {
-        return "Creates a new file";
+        return "create <filename>   — creates a new empty file";
     }
 }

@@ -1,54 +1,88 @@
 package com.lpu.smartcli.data;
 
-/**
- * HistoryDatabase placeholder for command history management.
- * Implementation to be added in Phase 1.
- *
- * @author SmartCLI Team
- * @version 1.0.0
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public class HistoryDatabase {
+    private final List<Entry> entries = new ArrayList<>();
 
-    /**
-     * Saves a command to history.
-     *
-     * @param command the command to save
-     * @todo Implement SQLite database integration
-     * @todo Add timestamp to history entries
-     */
-    public void addEntry(String command, String sessionId) {
-        // TODO: Store command entry with session linkage in SQLite.
+    public HistoryDatabase() {
     }
 
-    /**
-     * Retrieves command history.
-     *
-     * @return the list of previous commands
-     * @todo Implement history retrieval from database
-     */
-    public java.util.List<String> searchHistory(String query) {
-        // TODO: Search persisted command history by query.
-        return new java.util.ArrayList<>();
+    HistoryDatabase(String customDbPath) {
     }
 
-    /**
-     * Clears all command history.
-     *
-     * @todo Implement history clearing
-     */
-    public java.util.List<String> getRecentHistory(int limit) {
-        // TODO: Return most recent history rows up to limit.
-        return new java.util.ArrayList<>();
+    public void addEntry(String commandText, String sessionId) {
+        validateRequired(commandText, "Command text cannot be null or empty");
+        validateRequired(sessionId, "Session ID cannot be null or empty");
+        entries.add(new Entry(commandText, sessionId));
     }
 
-    /**
-     * Searches through command history.
-     *
-     * @param query the search query
-     * @return list of matching commands
-     * @todo Implement history search functionality
-     */
+    public List<String> getRecentHistory(int limit) {
+        List<String> recent = new ArrayList<>();
+        if (limit <= 0) {
+            return recent;
+        }
+
+        for (int i = entries.size() - 1; i >= 0 && recent.size() < limit; i--) {
+            recent.add(entries.get(i).commandText);
+        }
+
+        return recent;
+    }
+
+    public List<String> searchHistory(String query) {
+        List<String> matches = new ArrayList<>();
+        if (query == null || query.isBlank()) {
+            return matches;
+        }
+
+        for (int i = entries.size() - 1; i >= 0; i--) {
+            Entry entry = entries.get(i);
+            if (entry.commandText.contains(query)) {
+                matches.add(entry.commandText);
+            }
+        }
+
+        return matches;
+    }
+
     public void clearHistory() {
-        // TODO: Remove persisted command history entries.
+        entries.clear();
+    }
+
+    public int getTotalCount() {
+        return entries.size();
+    }
+
+    public List<String> getSessionHistory(String sessionId) {
+        List<String> sessionHistory = new ArrayList<>();
+        if (sessionId == null || sessionId.isBlank()) {
+            return sessionHistory;
+        }
+
+        for (Entry entry : entries) {
+            if (entry.sessionId.equals(sessionId)) {
+                sessionHistory.add(entry.commandText);
+            }
+        }
+
+        return sessionHistory;
+    }
+
+    private static void validateRequired(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    private static class Entry {
+        private final String commandText;
+        private final String sessionId;
+
+        private Entry(String commandText, String sessionId) {
+            this.commandText = commandText;
+            this.sessionId = sessionId;
+        }
     }
 }
