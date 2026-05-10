@@ -242,6 +242,31 @@ Or directly:
 java -Dfile.encoding=UTF-8 -jar target\SmartCLI.jar
 ```
 
+## AI Setup For End Users
+
+If you downloaded SmartCLI from GitHub Releases, AI commands require your own NVIDIA API key.
+
+1. Keep `config.properties.example` in the same folder as the JAR.
+2. Create a local `config.properties` file:
+
+```powershell
+copy config.properties.example config.properties
+```
+
+3. Open `config.properties` and set:
+
+```properties
+nvidia.api.key=YOUR_NVIDIA_API_KEY
+```
+
+4. Run SmartCLI from that same folder:
+
+```powershell
+java -jar SmartCLI-3.2.2-windows.jar
+```
+
+If `config.properties` is missing or the key is invalid, SmartCLI still works, but AI natural-language interpretation is disabled.
+
 ## Run Tests
 
 Using bundled Maven:
