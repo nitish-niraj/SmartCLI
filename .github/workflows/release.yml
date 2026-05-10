@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  build-and-release:
+  build-installers:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -18,58 +18,79 @@ jobs:
             artifact-suffix: windows
           - os: macos-latest
             artifact-suffix: macos
-    
+
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-    
-    - name: Build JAR
-      run: mvn clean package -DskipTests
-    
-    - name: Create Installer (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        mkdir -p target\jpackage-input
-        copy target\SmartCLI.jar target\jpackage-input\
-        jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${{ github.ref_name }} --vendor "LPU CAP477" --win-console --dest target/installer --type exe
-      shell: cmd
-    
-    - name: Create Installer (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        mkdir -p target/jpackage-input
-        cp target/SmartCLI.jar target/jpackage-input/
-        jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${{ github.ref_name }} --vendor "LPU CAP477" --dest target/installer --type deb
-    
-    - name: Create Installer (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        mkdir -p target/jpackage-input
-        cp target/SmartCLI.jar target/jpackage-input/
-        jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${{ github.ref_name }} --vendor "LPU CAP477" --dest target/installer --type dmg
-    
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: SmartCLI-${{ matrix.artifact-suffix }}
-        path: target/installer/
-    
-    - name: Create GitHub Release
-      if: matrix.os == 'ubuntu-latest'
-      uses: softprops/action-gh-release@v1
-      with:
-        draft: false
-        prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
-        files: |
-          target/SmartCLI.jar
-          target/installer/*
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build JAR
+        run: mvn clean package -DskipTests
+
+      - name: Resolve app version from tag
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          APP_VERSION="${TAG#v}"
+          echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Installer (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          mkdir -p target\jpackage-input
+          copy target\SmartCLI.jar target\jpackage-input\
+          jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${{ steps.version.outputs.app_version }} --vendor "LPU CAP477" --win-console --dest target/installer --type exe
+        shell: cmd
+
+      - name: Create Installer (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p target/jpackage-input
+          cp target/SmartCLI.jar target/jpackage-input/
+          jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${{ steps.version.outputs.app_version }} --vendor "LPU CAP477" --dest target/installer --type deb
+
+      - name: Create Installer (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p target/jpackage-input
+          cp target/SmartCLI.jar target/jpackage-input/
+          jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${{ steps.version.outputs.app_version }} --vendor "LPU CAP477" --dest target/installer --type dmg
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartCLI-${{ matrix.artifact-suffix }}
+          path: target/installer/*
+
+      - name: Upload JAR (linux only)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartCLI-jar
+          path: target/SmartCLI.jar
+
+  publish-release:
+    runs-on: ubuntu-latest
+    needs: build-installers
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
+          files: release-assets/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

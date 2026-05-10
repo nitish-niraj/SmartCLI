@@ -1,4 +1,4 @@
-# Smart Command Line System
+# Smart Command Line System (v3.2.1)
 
 SmartCLI is a Java 17 command-line interpreter built for CAP477 at Lovely Professional University. It combines real disk-based file commands, a SmartCLI-managed working directory, natural-language command interpretation through NVIDIA AI, and safe operating-system command passthrough.
 
@@ -17,6 +17,7 @@ The animation above condenses the real terminal flow: Maven build, Unicode launc
 | Runnable JAR | `target/SmartCLI.jar` |
 | Test framework | JUnit 5 |
 | Current test count | 124 tests |
+| Latest release | v3.2.1 |
 
 ## Documentation Hub
 
@@ -131,13 +132,15 @@ smartcli> write hello world program in hello.py
 Written to 'E:\lpu semester 2\javatest\hello.py'.
 ```
 
-AI configuration is read from `config.properties`:
+AI configuration is read from `config.properties` using your own local key.
 
-```properties
-nvidia.api.key=YOUR_NVIDIA_API_KEY
+Use the template file and keep the real key only on your machine:
+
+```powershell
+copy config.properties.example config.properties
 ```
 
-`config.properties` is ignored by Git so private API keys are not pushed.
+`config.properties` must never be committed. Keep only placeholder values in any tracked files.
 
 If AI configuration is missing, SmartCLI continues running and falls back safely.
 
@@ -267,7 +270,7 @@ The Maven `jpackage-maven-plugin` configuration is also included in `pom.xml`.
 
 ```text
 ╔══════════════════════════════════════╗
-║   Smart Command Line System v1.0     ║
+║   Smart Command Line System v3.2.1   ║
 ║   LPU | CAP477 | Section D2526       ║
 ║   Supervisor: Dr. Prince Arora       ║
 ╚══════════════════════════════════════╝

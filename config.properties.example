@@ -1,0 +1,4 @@
+# Local copy only. Do not commit real keys.
+# Copy this file to config.properties and set your own key.
+
+nvidia.api.key=YOUR_NVIDIA_API_KEY_HERE

@@ -55,10 +55,10 @@ template: |
   $CHANGES
   
   ### Download
-  - 📦 **[SmartCLI.jar](releases/download/$NEXT_PATCH_VERSION/SmartCLI.jar)** - Cross-platform JAR
-  - 🪟 **Windows** - [SmartCLI-installer.exe](releases/download/$NEXT_PATCH_VERSION/SmartCLI-installer.exe)
-  - 🐧 **Linux** - [smartcli_$NEXT_PATCH_VERSION_amd64.deb](releases/download/$NEXT_PATCH_VERSION/smartcli_$NEXT_PATCH_VERSION_amd64.deb)
-  - 🍎 **macOS** - [SmartCLI-$NEXT_PATCH_VERSION.dmg](releases/download/$NEXT_PATCH_VERSION/SmartCLI-$NEXT_PATCH_VERSION.dmg)
+  - 📦 **[SmartCLI.jar](releases/download/v$NEXT_PATCH_VERSION/SmartCLI.jar)** - Cross-platform JAR
+  - 🪟 **Windows** - [SmartCLI-installer.exe](releases/download/v$NEXT_PATCH_VERSION/SmartCLI-installer.exe)
+  - 🐧 **Linux** - [smartcli_$NEXT_PATCH_VERSION_amd64.deb](releases/download/v$NEXT_PATCH_VERSION/smartcli_$NEXT_PATCH_VERSION_amd64.deb)
+  - 🍎 **macOS** - [SmartCLI-$NEXT_PATCH_VERSION.dmg](releases/download/v$NEXT_PATCH_VERSION/SmartCLI-$NEXT_PATCH_VERSION.dmg)
   
   ### Installation Instructions
   

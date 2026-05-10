@@ -1,4 +1,4 @@
-# SmartCLI v3.2.0 Release Notes
+# SmartCLI v3.2.1 Release Notes
 
 **Released:** May 10, 2026
 
@@ -39,7 +39,7 @@
 - **Artifact Management**: Upload installers to releases
 
 ### Release Automation
-- Push tag like `git push origin v3.2.0`
+- Push tag like `git push origin v3.2.1`
 - Workflows automatically:
   1. Build on all platforms
   2. Generate native installers
@@ -48,43 +48,43 @@
 
 ## 📦 Download
 
-### Latest Version: v3.2.0
+### Latest Version: v3.2.1
 
 **Choose your platform:**
 
 | Platform | Download | Size | Requires |
 |----------|----------|------|----------|
-| **Windows** | SmartCLI-3.2.0.exe | ~150MB | None (JVM included) |
-| **Linux** | smartcli-3.2.0.deb | ~120MB | None (JVM included) |
-| **macOS** | SmartCLI-3.2.0.dmg | ~160MB | None (JVM included) |
-| **Cross-Platform** | SmartCLI-3.2.0.jar | ~45MB | Java 17+ |
+| **Windows** | SmartCLI-3.2.1.exe | ~150MB | None (JVM included) |
+| **Linux** | smartcli-3.2.1.deb | ~120MB | None (JVM included) |
+| **macOS** | SmartCLI-3.2.1.dmg | ~160MB | None (JVM included) |
+| **Cross-Platform** | SmartCLI-3.2.1.jar | ~45MB | Java 17+ |
 
 ## 🚀 Quick Start
 
 ### Windows
 ```cmd
-SmartCLI-3.2.0.exe
+SmartCLI-3.2.1.exe
 # Or via command line:
 SmartCLI.exe --mode console
 ```
 
 ### Linux
 ```bash
-sudo dpkg -i smartcli-3.2.0.deb
+sudo dpkg -i smartcli-3.2.1.deb
 smartcli --mode console
 ```
 
 ### macOS
 ```bash
-open SmartCLI-3.2.0.dmg
+open SmartCLI-3.2.1.dmg
 # Drag to Applications, then:
 /Applications/SmartCLI.app/Contents/MacOS/SmartCLI
 ```
 
 ### Universal (Java)
 ```bash
-java -jar SmartCLI-3.2.0.jar --mode console
-java -jar SmartCLI-3.2.0.jar --mode gui
+java -jar SmartCLI-3.2.1.jar --mode console
+java -jar SmartCLI-3.2.1.jar --mode gui
 ```
 
 ## 📋 Feature Checklist
