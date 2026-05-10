@@ -117,28 +117,28 @@
         <version>3.1.2</version>
       </plugin>
 
-      <!-- Maven Dependency Plugin: Copy JAR for jpackage -->
+      <!-- Maven Resources Plugin: Copy built JAR for jpackage -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.6.1</version>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
         <executions>
           <execution>
             <id>prepare-jpackage-input</id>
             <phase>package</phase>
             <goals>
-              <goal>copy</goal>
+              <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>${project.groupId}</groupId>
-                  <artifactId>${project.artifactId}</artifactId>
-                  <version>${project.version}</version>
-                  <type>jar</type>
-                  <outputDirectory>target/jpackage-input</outputDirectory>
-                </artifactItem>
-              </artifactItems>
+              <outputDirectory>${project.build.directory}/jpackage-input</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}</directory>
+                  <includes>
+                    <include>${project.build.finalName}.jar</include>
+                  </includes>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
@@ -155,8 +155,8 @@
           <vendor>LPU CAP477</vendor>
           <description>SmartCLI - Intelligent Command Line Interface with AI Layer</description>
           <destination>target/installer</destination>
-          <input>target/jpackage-input</input>
-          <mainJar>SmartCLI.jar</mainJar>
+          <input>${project.build.directory}/jpackage-input</input>
+          <mainJar>${project.build.finalName}.jar</mainJar>
           <mainClass>com.lpu.smartcli.ui.Terminal</mainClass>
           <runtimeImage>target/java-runtime</runtimeImage>
           <resourceDir>src/main/resources</resourceDir>
