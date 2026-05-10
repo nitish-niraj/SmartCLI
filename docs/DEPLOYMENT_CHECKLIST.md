@@ -189,19 +189,19 @@ Before pushing to GitHub:
 
 ## 🔄 FUTURE RELEASES (FULLY AUTOMATED)
 
-To release v3.2.1 or higher:
+To release v3.2.2 or higher:
 
 ```powershell
 # 1. Update version in pom.xml
-# <version>3.2.1</version>
+# <version>3.2.2</version>
 
 # 2. Commit and push
-git commit -am "chore: bump to v3.2.1"
+git commit -am "chore: bump to v3.2.2"
 git push origin main
 
 # 3. Create and push tag (TRIGGERS EVERYTHING!)
-git tag v3.2.1
-git push origin v3.2.1
+git tag v3.2.2
+git push origin v3.2.2
 
 # GitHub Actions will automatically:
 # ✅ Build on Windows, Linux, macOS

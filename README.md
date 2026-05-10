@@ -1,4 +1,4 @@
-# Smart Command Line System (v3.2.1)
+# Smart Command Line System (v3.2.2)
 
 SmartCLI is a Java 17 command-line interpreter built for CAP477 at Lovely Professional University. It combines real disk-based file commands, a SmartCLI-managed working directory, natural-language command interpretation through NVIDIA AI, and safe operating-system command passthrough.
 
@@ -17,7 +17,7 @@ The animation above condenses the real terminal flow: Maven build, Unicode launc
 | Runnable JAR | `target/SmartCLI.jar` |
 | Test framework | JUnit 5 |
 | Current test count | 124 tests |
-| Latest release | v3.2.1 |
+| Latest release | v3.2.2 |
 
 ## Documentation Hub
 
@@ -270,7 +270,7 @@ The Maven `jpackage-maven-plugin` configuration is also included in `pom.xml`.
 
 ```text
 ╔══════════════════════════════════════╗
-║   Smart Command Line System v3.2.1   ║
+║   Smart Command Line System v3.2.2   ║
 ║   LPU | CAP477 | Section D2526       ║
 ║   Supervisor: Dr. Prince Arora       ║
 ╚══════════════════════════════════════╝

@@ -23,12 +23,12 @@ jobs:
             artifact-suffix: macos
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -52,14 +52,35 @@ jobs:
           fi
         shell: bash
 
+      - name: Prepare release assets
+        run: |
+          mkdir -p target/release-bundle
+          VERSION=${GITHUB_REF_NAME#v}
+
+          # Add per-platform JAR to avoid duplicate release asset names.
+          if [ -f "target/SmartCLI-${VERSION}.jar" ]; then
+            cp "target/SmartCLI-${VERSION}.jar" "target/release-bundle/SmartCLI-${VERSION}-${{ matrix.artifact-suffix }}.jar"
+          fi
+
+          # Normalize installer names to include platform suffix.
+          shopt -s nullglob
+          for file in target/installer/*; do
+            base="$(basename "$file")"
+            if [[ "$base" == *.* ]]; then
+              name="${base%.*}"
+              ext="${base##*.}"
+              cp "$file" "target/release-bundle/${name}-${{ matrix.artifact-suffix }}.${ext}"
+            else
+              cp "$file" "target/release-bundle/${base}-${{ matrix.artifact-suffix }}"
+            fi
+          done
+        shell: bash
+
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: SmartCLI-${{ matrix.artifact-suffix }}
-          path: |
-            target/installer/*
-            target/SmartCLI.jar
-            target/SmartCLI-*.jar
+          path: target/release-bundle/*
           if-no-files-found: warn
           retention-days: 7
 
@@ -70,7 +91,7 @@ jobs:
       contents: write
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: release-assets
 
@@ -78,8 +99,14 @@ jobs:
         run: find release-assets -type f
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
+          name: SmartCLI ${{ github.ref_name }}
+          generate_release_notes: true
+          body: |
+            Automated release for `${{ github.ref_name }}`.
+            Includes cross-platform installers and platform-tagged JAR artifacts.
           draft: false
           prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
           files: release-assets/**/*
