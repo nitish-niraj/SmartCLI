@@ -4,6 +4,8 @@ SmartCLI is a Java 17 command-line interpreter built for CAP477 at Lovely Profes
 
 ![SmartCLI demo](docs/smartcli-demo.svg)
 
+The animation above condenses the real terminal flow: Maven build, Unicode launch, OS passthrough commands, `mkdir`, failed Windows `ls`, SmartCLI `cd`, real file creation, write/read, `list`, and AI-powered file creation.
+
 ## Project Snapshot
 
 | Item | Details |
