@@ -238,18 +238,18 @@ mvn clean package -P macos
 
 ## 🔄 FUTURE RELEASES - FULLY AUTOMATIC
 
-To release v3.2.1 in the future:
+To release v3.2.2 in the future:
 
 ```bash
 # 1. Update version in pom.xml
-# <version>3.2.1</version>
+# <version>3.2.2</version>
 
 # 2. Commit
-git commit -am "chore: version bump to 3.2.1"
+git commit -am "chore: version bump to 3.2.2"
 git push origin main
 
 # 3. Create tag (TRIGGERS EVERYTHING!)
-git tag v3.2.1 && git push origin v3.2.1
+git tag v3.2.2 && git push origin v3.2.2
 
 # That's it! GitHub Actions will:
 # ✅ Build on all platforms
