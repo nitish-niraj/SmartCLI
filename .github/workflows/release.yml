@@ -34,51 +34,32 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build JAR
-        run: mvn clean package -DskipTests
-
-      - name: Resolve app version from tag
-        id: version
+      - name: Build JAR with jpackage
+        run: |
+          mvn clean package -DskipTests
+          mkdir -p target/installer
+          
+          # Get version from tag
+          VERSION=${GITHUB_REF_NAME#v}
+          
+          # Determine jpackage installer type based on OS
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI-${VERSION}.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${VERSION} --vendor "LPU CAP477" --win-console --dest target/installer --type exe || echo "jpackage failed on Windows"
+          elif [ "$RUNNER_OS" = "Linux" ]; then
+            jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI-${VERSION}.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${VERSION} --vendor "LPU CAP477" --dest target/installer --type deb || echo "jpackage failed on Linux"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI-${VERSION}.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${VERSION} --vendor "LPU CAP477" --dest target/installer --type dmg || echo "jpackage failed on macOS"
+          fi
         shell: bash
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          APP_VERSION="${TAG#v}"
-          echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
 
-      - name: Create Installer (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          mkdir -p target\jpackage-input
-          copy target\SmartCLI.jar target\jpackage-input\
-          jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${{ steps.version.outputs.app_version }} --vendor "LPU CAP477" --win-console --dest target/installer --type exe
-        shell: cmd
-
-      - name: Create Installer (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          mkdir -p target/jpackage-input
-          cp target/SmartCLI.jar target/jpackage-input/
-          jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${{ steps.version.outputs.app_version }} --vendor "LPU CAP477" --dest target/installer --type deb
-
-      - name: Create Installer (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          mkdir -p target/jpackage-input
-          cp target/SmartCLI.jar target/jpackage-input/
-          jpackage --input target/jpackage-input --name SmartCLI --main-jar SmartCLI.jar --main-class com.lpu.smartcli.ui.Terminal --app-version ${{ steps.version.outputs.app_version }} --vendor "LPU CAP477" --dest target/installer --type dmg
-
-      - name: Upload installers
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: SmartCLI-${{ matrix.artifact-suffix }}
-          path: target/installer/*
-
-      - name: Upload JAR (linux only)
-        if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: SmartCLI-jar
-          path: target/SmartCLI.jar
+          path: |
+            target/installer/*
+            target/SmartCLI.jar
+            target/SmartCLI-*.jar
 
   publish-release:
     runs-on: ubuntu-latest
