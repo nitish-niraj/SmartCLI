@@ -30,7 +30,7 @@ jobs:
       run: mvn test
     
     - name: Upload JAR artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: SmartCLI-jar
         path: target/SmartCLI.jar
@@ -38,7 +38,7 @@ jobs:
         if-no-files-found: warn
     
     - name: Upload coverage reports
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: test-results

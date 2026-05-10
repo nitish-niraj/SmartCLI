@@ -77,7 +77,7 @@ jobs:
         shell: bash
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: SmartCLI-${{ matrix.artifact-suffix }}
           path: target/release-bundle/*
