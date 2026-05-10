@@ -7,25 +7,37 @@ import com.lpu.smartcli.data.FileSystem;
 public class WriteCommand implements Command {
     @Override
     public void execute(String[] args, FileSystem fs) {
-        if (args.length < 2) {
-            ErrorHandler.missingArgs("write <filename> <content>");
-            return;
-        }
-
-        if (!fs.fileExists(args[0])) {
-            ErrorHandler.fileNotFound(args[0]);
-            return;
-        }
-
-        StringBuilder content = new StringBuilder();
-        for (int i = 1; i < args.length; i++) {
-            if (i > 1) {
-                content.append(" ");
+        try {
+            if (args == null || args.length == 0) {
+                System.out.println("Usage: write filename your content here");
+                return;
             }
-            content.append(args[i]);
-        }
 
-        fs.writeFile(args[0], content.toString());
+            int filenameIndex = "write".equalsIgnoreCase(args[0]) ? 1 : 0;
+            int contentStartIndex = filenameIndex + 1;
+            if (args.length <= contentStartIndex) {
+                System.out.println("Usage: write filename your content here");
+                return;
+            }
+
+            String filename = args[filenameIndex];
+            if (!fs.fileExists(filename)) {
+                ErrorHandler.fileNotFound(filename);
+                return;
+            }
+
+            StringBuilder content = new StringBuilder();
+            for (int i = contentStartIndex; i < args.length; i++) {
+                if (i > contentStartIndex) {
+                    content.append(" ");
+                }
+                content.append(args[i]);
+            }
+
+            fs.writeFile(filename, content.toString());
+        } catch (Exception e) {
+            ErrorHandler.executionError(e.getMessage() != null ? e.getMessage() : "Unknown write error");
+        }
     }
 
     @Override

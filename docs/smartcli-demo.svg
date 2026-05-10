@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="430" viewBox="0 0 900 430" role="img" aria-label="SmartCLI animated terminal demo">
+  <style>
+    .bg { fill: #111827; }
+    .bar { fill: #1f2937; }
+    .dot1 { fill: #ef4444; }
+    .dot2 { fill: #f59e0b; }
+    .dot3 { fill: #22c55e; }
+    .title { fill: #d1d5db; font: 600 15px Consolas, monospace; }
+    .text { fill: #e5e7eb; font: 18px Consolas, monospace; }
+    .prompt { fill: #93c5fd; font: 18px Consolas, monospace; }
+    .ok { fill: #86efac; font: 18px Consolas, monospace; }
+    .dim { fill: #9ca3af; font: 18px Consolas, monospace; }
+    .line { opacity: 0; animation: show 12s infinite; }
+    .l1 { animation-delay: 0s; }
+    .l2 { animation-delay: 1.4s; }
+    .l3 { animation-delay: 2.8s; }
+    .l4 { animation-delay: 4.2s; }
+    .l5 { animation-delay: 5.6s; }
+    .l6 { animation-delay: 7s; }
+    .l7 { animation-delay: 8.4s; }
+    .l8 { animation-delay: 9.8s; }
+    @keyframes show {
+      0%, 8% { opacity: 0; transform: translateY(8px); }
+      12%, 88% { opacity: 1; transform: translateY(0); }
+      95%, 100% { opacity: 0; transform: translateY(0); }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="900" height="430" rx="14"/>
+  <rect class="bar" x="0" y="0" width="900" height="44" rx="14"/>
+  <circle class="dot1" cx="24" cy="22" r="7"/>
+  <circle class="dot2" cx="48" cy="22" r="7"/>
+  <circle class="dot3" cx="72" cy="22" r="7"/>
+  <text class="title" x="110" y="28">SmartCLI - real disk files + working directory</text>
+  <text class="line l1 prompt" x="34" y="82">smartcli&gt; pwd</text>
+  <text class="line l2 text" x="34" y="116">Current directory: E:\lpu semester 2\java\SmartCLI</text>
+  <text class="line l3 prompt" x="34" y="158">smartcli&gt; cd E:\movie</text>
+  <text class="line l4 ok" x="34" y="192">Working directory changed to: E:\movie</text>
+  <text class="line l5 prompt" x="34" y="234">smartcli&gt; create hello.py</text>
+  <text class="line l6 ok" x="34" y="268">File 'hello.py' created at E:\movie\hello.py</text>
+  <text class="line l7 prompt" x="34" y="310">smartcli&gt; write hello.py this is my movie notes</text>
+  <text class="line l8 ok" x="34" y="344">Written to 'E:\movie\hello.py'.</text>
+  <text class="dim" x="34" y="392">Real files appear in Windows Explorer and OS dir output.</text>
+</svg>

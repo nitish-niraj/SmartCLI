@@ -7,13 +7,8 @@ import com.lpu.smartcli.data.FileSystem;
 public class CreateCommand implements Command {
     @Override
     public void execute(String[] args, FileSystem fs) {
-        if (args.length == 0 || args[0].isBlank()) {
+        if (args == null || args.length == 0 || args[0].isBlank()) {
             ErrorHandler.missingArgs("create <filename>");
-            return;
-        }
-
-        if (fs.fileExists(args[0])) {
-            ErrorHandler.alreadyExists(args[0]);
             return;
         }
 

@@ -14,14 +14,14 @@ public class ListCommand implements Command {
             return;
         }
 
-        System.out.println("Files in memory (" + files.size() + "):");
+        System.out.println("Files in " + fs.getWorkingDirectory() + ":");
         for (String file : files) {
-            System.out.println("- " + file);
+            System.out.println("  * " + file);
         }
     }
 
     @Override
     public String getDescription() {
-        return "list  — List all files in memory";
+        return "list  — List files in the current directory";
     }
 }

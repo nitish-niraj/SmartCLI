@@ -2,6 +2,7 @@ package com.lpu.smartcli.ai;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -14,6 +15,7 @@ public class NvidiaAIClient {
     private static final String MODEL = "minimaxai/minimax-m2.7";
     private static final String CONFIG_FILE = "config.properties";
     private static final String API_KEY_PROPERTY = "nvidia.api.key";
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(20);
     private static final String MISSING_CONFIG_MESSAGE =
             "ERROR: config.properties not found. Create it at project root with: nvidia.api.key=YOUR_KEY";
     private static final String SYSTEM_PROMPT =
@@ -24,23 +26,33 @@ public class NvidiaAIClient {
                     + "4) delete filename — deletes a file. "
                     + "5) list — lists all files. "
                     + "6) help — shows help. "
+                    + "If the user asks to do two things at once like create a file AND write to it, only return the FIRST operation. "
+                    + "Never combine two commands. Never return two lines. Always return exactly one command. "
+                    + "For create commands, the filename is always the last word that contains a dot extension like .py .txt .java. "
+                    + "Ignore all other words like one, a, the, new. "
                     + "Reply with ONLY the command. No explanation. No quotes. No punctuation. "
                     + "Examples: user says make hello.py → create hello.py. "
                     + "User says write hello world to notes.txt → write notes.txt hello world. "
                     + "User says show notes.txt contents → read notes.txt.";
+    private final String apiKey;
+
+    public NvidiaAIClient() {
+        apiKey = loadApiKey();
+        if (apiKey == null) {
+            throw new IllegalStateException(MISSING_CONFIG_MESSAGE);
+        }
+    }
 
     public String interpret(String userInput) {
-        String apiKey = loadApiKey();
-        if (apiKey == null) {
-            return null;
-        }
-
         try {
-            HttpClient client = HttpClient.newHttpClient();
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(REQUEST_TIMEOUT)
+                    .build();
             String requestBody = buildRequestBody(userInput);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_URL))
+                    .timeout(REQUEST_TIMEOUT)
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
@@ -48,8 +60,6 @@ public class NvidiaAIClient {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                System.out.println("Error connecting to NVIDIA API: HTTP " + response.statusCode());
-                System.out.println(response.body());
                 return null;
             }
 
@@ -60,7 +70,6 @@ public class NvidiaAIClient {
 
             return reply.trim();
         } catch (Exception e) {
-            System.out.println("Error connecting to NVIDIA API: " + e.getMessage());
             return null;
         }
     }
@@ -79,13 +88,11 @@ public class NvidiaAIClient {
         try (FileInputStream input = new FileInputStream(CONFIG_FILE)) {
             properties.load(input);
         } catch (IOException e) {
-            System.out.println(MISSING_CONFIG_MESSAGE);
             return null;
         }
 
         String apiKey = properties.getProperty(API_KEY_PROPERTY);
         if (apiKey == null || apiKey.isBlank()) {
-            System.out.println(MISSING_CONFIG_MESSAGE);
             return null;
         }
 
@@ -168,7 +175,6 @@ public class NvidiaAIClient {
     }
 
     private String parseFailure() {
-        System.out.println("[AI] Could not parse response, falling back to OS.");
         return null;
     }
 

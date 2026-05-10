@@ -40,6 +40,9 @@ public class OsCommand implements Command {
         }
 
         ProcessBuilder processBuilder = createProcessBuilder(commandLine);
+        if (fs != null) {
+            processBuilder.directory(fs.getWorkingDirectory().toFile());
+        }
         try {
             Process process = processBuilder.start();
 

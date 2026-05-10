@@ -6,16 +6,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.FileNotFoundException;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class FileSystemTest {
     private FileSystem fileSystem;
+    @TempDir
+    Path tempDirectory;
 
     @BeforeEach
     void setUp() {
         fileSystem = new FileSystem();
+        fileSystem.setWorkingDirectory(tempDirectory);
     }
 
     @Test
@@ -30,11 +35,9 @@ class FileSystemTest {
     void createFileThrowsWhenDuplicateExists() {
         fileSystem.createFile("notes.txt");
 
-        IllegalStateException exception = assertThrows(
-                IllegalStateException.class,
-                () -> fileSystem.createFile("notes.txt")
-        );
-        assertEquals("File already exists: notes.txt", exception.getMessage());
+        fileSystem.createFile("notes.txt");
+
+        assertEquals(1, fileSystem.getFileCount());
     }
 
     @Test

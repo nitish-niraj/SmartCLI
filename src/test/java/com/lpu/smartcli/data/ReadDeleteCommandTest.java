@@ -8,19 +8,24 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class ReadDeleteCommandTest {
     private final PrintStream originalOut = System.out;
     private final InputStream originalIn = System.in;
     private ByteArrayOutputStream output;
     private FileSystem fileSystem;
+    @TempDir
+    Path tempDirectory;
 
     @BeforeEach
     void setUp() {
         fileSystem = new FileSystem();
+        fileSystem.setWorkingDirectory(tempDirectory);
         output = new ByteArrayOutputStream();
         System.setOut(new PrintStream(output));
     }

@@ -1,9 +1,11 @@
 package com.lpu.smartcli.ui;
 
+import com.lpu.smartcli.commands.CdCommand;
 import com.lpu.smartcli.commands.CreateCommand;
 import com.lpu.smartcli.commands.DeleteCommand;
 import com.lpu.smartcli.commands.ListCommand;
 import com.lpu.smartcli.commands.OsCommand;
+import com.lpu.smartcli.commands.PwdCommand;
 import com.lpu.smartcli.commands.ReadCommand;
 import com.lpu.smartcli.commands.WriteCommand;
 import com.lpu.smartcli.core.Command;
@@ -19,7 +21,8 @@ import java.util.Set;
 public class CommandParser {
     public static boolean AI_ENABLED = true;
     private static final Set<String> NATURAL_LANGUAGE_INDICATORS = new HashSet<>(List.of(
-            "a", "the", "with", "called", "named", "my", "all", "me", "show", "make", "remove", "what"
+            "a", "the", "with", "called", "named", "my", "all", "me", "show", "make", "remove", "what",
+            "one", "new", "file", "program", "in"
     ));
     private static final Set<String> COMMON_OS_COMMANDS = new HashSet<>(List.of(
             "ls", "dir", "cd", "pwd", "echo", "type", "cat", "more", "copy", "xcopy",
@@ -31,7 +34,8 @@ public class CommandParser {
     ));
 
     private Map<String, Command> registry;
-    private NvidiaAIClient aiClient = new NvidiaAIClient();
+    private NvidiaAIClient aiClient;
+    private boolean aiAvailable = true;
     private String lastRawInput;
     private String lastInterpretedInput;
 
@@ -42,8 +46,16 @@ public class CommandParser {
         registry.put("read", new ReadCommand());
         registry.put("delete", new DeleteCommand());
         registry.put("list", new ListCommand());
+        registry.put("cd", new CdCommand());
+        registry.put("pwd", new PwdCommand());
         registry.put("help", new HelpCommand(registry));
         registry.put("exit", new ExitCommand());
+
+        try {
+            aiClient = new NvidiaAIClient();
+        } catch (Exception e) {
+            aiAvailable = false;
+        }
     }
 
     public Command parse(String rawInput) {
@@ -55,24 +67,15 @@ public class CommandParser {
             return null;
         }
 
-        boolean naturalLanguage = looksLikeNaturalLanguage(rawInput);
-        if (AI_ENABLED && naturalLanguage && !isOsCommandAttempt(tokens)) {
-            Command aiCommand = parseWithAi(rawInput);
-            if (aiCommand != null) {
-                return aiCommand;
-            }
-
-            if (containsWord(rawInput, "write")) {
-                System.out.println("[AI] For writing use: write filename your content here");
-                return null;
-            }
-
-            return new OsCommand(tokens.toArray(new String[0]));
-        }
-
         Command found = registry.get(tokens.get(0));
-        if (found == null) {
-            if (AI_ENABLED && !isOsCommandAttempt(tokens)) {
+        boolean naturalLanguage = looksLikeNaturalLanguage(rawInput);
+        if (found != null) {
+            if (AI_ENABLED && naturalLanguage && shouldUseAiForKnownCommand(tokens) && !isOsCommandAttempt(tokens)) {
+                if (!aiAvailable) {
+                    printAiUnavailable();
+                    return new OsCommand(tokens.toArray(new String[0]));
+                }
+
                 Command aiCommand = parseWithAi(rawInput);
                 if (aiCommand != null) {
                     return aiCommand;
@@ -84,10 +87,29 @@ public class CommandParser {
                 }
             }
 
-            return new OsCommand(tokens.toArray(new String[0]));
+            return found;
         }
 
-        return found;
+        if (AI_ENABLED && !isOsCommandAttempt(tokens)) {
+            if (!aiAvailable) {
+                if (naturalLanguage) {
+                    printAiUnavailable();
+                }
+                return new OsCommand(tokens.toArray(new String[0]));
+            }
+
+            Command aiCommand = parseWithAi(rawInput);
+            if (aiCommand != null) {
+                return aiCommand;
+            }
+
+            if (containsWord(rawInput, "write")) {
+                System.out.println("[AI] For writing use: write filename your content here");
+                return null;
+            }
+        }
+
+        return new OsCommand(tokens.toArray(new String[0]));
     }
 
     public Map<String, Command> getRegistry() {
@@ -124,6 +146,10 @@ public class CommandParser {
 
     private Command parseWithAi(String rawInput) {
         String interpreted = aiClient.interpret(rawInput);
+        if (interpreted == null || interpreted.isBlank()) {
+            interpreted = interpretLocally(rawInput);
+        }
+
         Command interpretedCommand = getInterpretedCommand(interpreted);
         if (interpretedCommand == null) {
             return null;
@@ -132,6 +158,68 @@ public class CommandParser {
         lastInterpretedInput = interpreted.trim();
         System.out.println("[AI] Interpreted as: " + lastInterpretedInput);
         return interpretedCommand;
+    }
+
+    private String interpretLocally(String rawInput) {
+        List<String> tokens = tokenize(rawInput);
+        int filenameIndex = findLastFilenameIndex(tokens);
+        if (filenameIndex < 0) {
+            return null;
+        }
+
+        if (containsWord(rawInput, "create") || containsWord(rawInput, "make")) {
+            return "create " + tokens.get(filenameIndex);
+        }
+
+        if (containsWord(rawInput, "write")) {
+            int writeIndex = findWordIndex(tokens, "write");
+            if (writeIndex < 0 || writeIndex >= filenameIndex) {
+                return null;
+            }
+
+            List<String> contentTokens = new ArrayList<>(tokens.subList(writeIndex + 1, filenameIndex));
+            while (!contentTokens.isEmpty() && isWritePreposition(contentTokens.get(contentTokens.size() - 1))) {
+                contentTokens.remove(contentTokens.size() - 1);
+            }
+
+            if (contentTokens.isEmpty()) {
+                return null;
+            }
+
+            return "write " + tokens.get(filenameIndex) + " " + String.join(" ", contentTokens);
+        }
+
+        return null;
+    }
+
+    private int findLastFilenameIndex(List<String> tokens) {
+        for (int i = tokens.size() - 1; i >= 0; i--) {
+            if (looksLikeFilename(tokens.get(i))) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private int findWordIndex(List<String> tokens, String word) {
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).equalsIgnoreCase(word)) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private boolean isWritePreposition(String token) {
+        return "in".equalsIgnoreCase(token)
+                || "to".equalsIgnoreCase(token)
+                || "into".equalsIgnoreCase(token);
+    }
+
+    private void printAiUnavailable() {
+        System.out.println("[AI] AI layer unavailable. Please create config.properties with your NVIDIA API key.");
     }
 
     private boolean looksLikeNaturalLanguage(String input) {
@@ -172,6 +260,27 @@ public class CommandParser {
                 || commandName.endsWith(".bat")
                 || commandName.endsWith(".cmd")
                 || commandName.endsWith(".ps1");
+    }
+
+    private boolean shouldUseAiForKnownCommand(List<String> tokens) {
+        String commandName = tokens.get(0).toLowerCase();
+        if ("write".equals(commandName)) {
+            return tokens.size() < 2 || !looksLikeFilename(tokens.get(1));
+        }
+
+        if ("create".equals(commandName) || "read".equals(commandName) || "delete".equals(commandName)) {
+            return tokens.size() != 2 || !looksLikeFilename(tokens.get(1));
+        }
+
+        return false;
+    }
+
+    private boolean looksLikeFilename(String token) {
+        if (token == null) {
+            return false;
+        }
+
+        return token.matches("(?i).+\\.[a-z0-9]+");
     }
 
     private List<String> tokenize(String input) {

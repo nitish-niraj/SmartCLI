@@ -1,55 +1,14 @@
-================================================
- Smart Command Line System — CAP477 | LPU
-================================================
+Smart Command Line System
 
- Team: Section D2526
-   - Nitish Kumar   (RD2536B60) — Team Leader
-   - Nikita Chauhan (RD2526B37)
-   - Ayush Kumar    (RD2526B41)
+The full updated project documentation is in README.md.
 
- Supervisor: Dr. Prince Arora
+Quick start:
 
-------------------------------------------------
- HOW TO RUN
-------------------------------------------------
- Requirement: Java 17 or higher installed.
+1. Open PowerShell in this folder.
+2. Build:
+   .\.tools\apache-maven-3.9.9\bin\mvn.cmd clean package -DskipTests
+3. Run:
+   cmd.exe /c "chcp 65001 & java -Dfile.encoding=UTF-8 -jar target\SmartCLI.jar"
 
- Check Java version:
-     java -version
-
- Run the application:
-     java -jar SmartCLI.jar
-
- Run in console mode explicitly:
-     java -jar SmartCLI.jar --mode console
-
-------------------------------------------------
- COMMANDS
-------------------------------------------------
- create <filename>           Create a new file
- write  <filename> <text>    Write text to a file
- read   <filename>           Read a file
- delete <filename>           Delete a file
- list                        List all files in memory
- help                        Show all commands
- exit                        Exit the application
-
- Unknown commands are passed to the operating system shell.
- Examples:
-     dir
-     ipconfig
-     git status
-     java -version
-
-------------------------------------------------
- EXAMPLE SESSION
-------------------------------------------------
- smartcli> create notes.txt
- smartcli> write notes.txt Hello from CAP477
- smartcli> read notes.txt
- smartcli> list
- smartcli> dir
- smartcli> delete notes.txt
- smartcli> exit
-
-================================================
+SmartCLI now uses real disk-based file operations with its own working directory.
+Use pwd, cd, create, write, read, delete, list, help, and exit inside the CLI.

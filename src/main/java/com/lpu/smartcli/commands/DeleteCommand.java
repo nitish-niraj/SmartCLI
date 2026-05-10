@@ -7,7 +7,7 @@ import com.lpu.smartcli.data.FileSystem;
 public class DeleteCommand implements Command {
     @Override
     public void execute(String[] args, FileSystem fs) {
-        if (args.length == 0) {
+        if (args == null || args.length == 0) {
             ErrorHandler.missingArgs("delete <filename>");
             return;
         }
