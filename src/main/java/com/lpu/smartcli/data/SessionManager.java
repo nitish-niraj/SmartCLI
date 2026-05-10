@@ -2,6 +2,7 @@ package com.lpu.smartcli.data;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -34,6 +35,16 @@ public class SessionManager {
 
     public String getCurrentDirectory() {
         return currentDirectory;
+    }
+
+    public String getCurrentDir() {
+        return getCurrentDirectory();
+    }
+
+    public void setCurrentDirectory(Path path) {
+        if (path != null) {
+            currentDirectory = path.toAbsolutePath().normalize().toString();
+        }
     }
 
     public boolean changeDirectory(String path) {

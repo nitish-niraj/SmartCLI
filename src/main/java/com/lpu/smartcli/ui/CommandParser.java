@@ -1,21 +1,33 @@
 package com.lpu.smartcli.ui;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.lpu.smartcli.ai.NvidiaAIClient;
+import com.lpu.smartcli.commands.AliasCommand;
 import com.lpu.smartcli.commands.CdCommand;
 import com.lpu.smartcli.commands.CreateCommand;
 import com.lpu.smartcli.commands.DeleteCommand;
+import com.lpu.smartcli.commands.GitStatusCommand;
 import com.lpu.smartcli.commands.ListCommand;
 import com.lpu.smartcli.commands.OsCommand;
 import com.lpu.smartcli.commands.PwdCommand;
 import com.lpu.smartcli.commands.ReadCommand;
+import com.lpu.smartcli.commands.ThemeCommand;
 import com.lpu.smartcli.commands.WriteCommand;
 import com.lpu.smartcli.core.Command;
-import com.lpu.smartcli.ai.NvidiaAIClient;
+import com.lpu.smartcli.smart.AutoCorrect;
+import com.lpu.smartcli.storage.AliasStore;
+import com.lpu.smartcli.data.HistoryDatabase;
+import com.lpu.smartcli.data.SessionManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class CommandParser {
@@ -25,7 +37,7 @@ public class CommandParser {
             "one", "new", "file", "program", "in"
     ));
     private static final Set<String> COMMON_OS_COMMANDS = new HashSet<>(List.of(
-            "ls", "dir", "cd", "pwd", "echo", "type", "cat", "more", "copy", "xcopy",
+            "ls", "dir", "echo", "type", "cat", "more", "copy", "xcopy",
             "move", "del", "rm", "mkdir", "rmdir", "cls", "clear", "tree", "find",
             "findstr", "grep", "where", "which", "whoami", "hostname", "date", "time",
             "ipconfig", "ifconfig", "ping", "tracert", "netstat", "curl", "wget",
@@ -33,23 +45,38 @@ public class CommandParser {
             "python3", "pip", "powershell", "cmd", "sh", "bash"
     ));
 
-    private Map<String, Command> registry;
+    private final Map<String, Command> registry;
+    private final AliasStore aliasStore;
     private NvidiaAIClient aiClient;
     private boolean aiAvailable = true;
     private String lastRawInput;
     private String lastInterpretedInput;
 
     public CommandParser() {
+        this(null, new HistoryDatabase(":memory:"), new ConfigManager());
+    }
+
+    public CommandParser(ConfigManager configManager) {
+        this(null, new HistoryDatabase(":memory:"), configManager);
+    }
+
+    public CommandParser(SessionManager session, HistoryDatabase history, ConfigManager configManager) {
         registry = new LinkedHashMap<>();
+        aliasStore = new AliasStore(configManager);
+        ThemeManager themeManager = new ThemeManager(configManager);
+
         registry.put("create", new CreateCommand());
         registry.put("write", new WriteCommand());
         registry.put("read", new ReadCommand());
         registry.put("delete", new DeleteCommand());
         registry.put("list", new ListCommand());
-        registry.put("cd", new CdCommand());
+        registry.put("cd", new CdCommand(session));
         registry.put("pwd", new PwdCommand());
+        registry.put("alias", new AliasCommand(aliasStore));
+        registry.put("theme", new ThemeCommand(themeManager));
+        registry.put("gitstatus", new GitStatusCommand());
         registry.put("help", new HelpCommand(registry));
-        registry.put("exit", new ExitCommand());
+        registry.put("exit", new ExitCommand(history, configManager));
 
         try {
             aiClient = new NvidiaAIClient();
@@ -67,45 +94,36 @@ public class CommandParser {
             return null;
         }
 
+        String routedInput = expandAlias(rawInput, tokens);
+        if (!routedInput.equals(rawInput)) {
+            lastInterpretedInput = routedInput;
+            tokens = tokenize(routedInput);
+            System.out.println("[alias] " + rawInput + " -> " + routedInput);
+        }
+
         Command found = registry.get(tokens.get(0));
-        boolean naturalLanguage = looksLikeNaturalLanguage(rawInput);
+        boolean naturalLanguage = looksLikeNaturalLanguage(routedInput);
         if (found != null) {
             if (AI_ENABLED && naturalLanguage && shouldUseAiForKnownCommand(tokens) && !isOsCommandAttempt(tokens)) {
-                if (!aiAvailable) {
-                    printAiUnavailable();
-                    return new OsCommand(tokens.toArray(new String[0]));
-                }
-
-                Command aiCommand = parseWithAi(rawInput);
+                Command aiCommand = tryParseWithAi(routedInput, tokens);
                 if (aiCommand != null) {
                     return aiCommand;
-                }
-
-                if (containsWord(rawInput, "write")) {
-                    System.out.println("[AI] For writing use: write filename your content here");
-                    return null;
                 }
             }
 
             return found;
         }
 
-        if (AI_ENABLED && !isOsCommandAttempt(tokens)) {
-            if (!aiAvailable) {
-                if (naturalLanguage) {
-                    printAiUnavailable();
-                }
-                return new OsCommand(tokens.toArray(new String[0]));
-            }
+        Optional<String> suggestion = suggestCommand(tokens.get(0));
+        if (suggestion.isPresent() && !tokens.get(0).equalsIgnoreCase(suggestion.get())) {
+            System.out.println("Unknown command. Did you mean: " + suggestion.get() + "?");
+            return null;
+        }
 
-            Command aiCommand = parseWithAi(rawInput);
+        if (AI_ENABLED && !isOsCommandAttempt(tokens)) {
+            Command aiCommand = tryParseWithAi(routedInput, tokens);
             if (aiCommand != null) {
                 return aiCommand;
-            }
-
-            if (containsWord(rawInput, "write")) {
-                System.out.println("[AI] For writing use: write filename your content here");
-                return null;
             }
         }
 
@@ -130,6 +148,35 @@ public class CommandParser {
         return tokens.subList(1, tokens.size()).toArray(new String[0]);
     }
 
+    private Command tryParseWithAi(String rawInput, List<String> tokens) {
+        if (!aiAvailable) {
+            String localInterpretation = normalizeInterpretedCommand(interpretLocally(rawInput));
+            Command localCommand = getInterpretedCommand(localInterpretation);
+            if (localCommand != null) {
+                lastInterpretedInput = localInterpretation;
+                System.out.println("[AI] Interpreted as: " + lastInterpretedInput);
+                return localCommand;
+            }
+
+            if (looksLikeNaturalLanguage(rawInput)) {
+                printAiUnavailable();
+            }
+            return null;
+        }
+
+        Command aiCommand = parseWithAi(rawInput);
+        if (aiCommand != null) {
+            return aiCommand;
+        }
+
+        if (containsWord(rawInput, "write")) {
+            System.out.println("[AI] For writing use: write filename your content here");
+            return null;
+        }
+
+        return isOsCommandAttempt(tokens) ? new OsCommand(tokens.toArray(new String[0])) : null;
+    }
+
     private Command getInterpretedCommand(String interpreted) {
         List<String> interpretedTokens = tokenize(interpreted);
         if (interpretedTokens.isEmpty()) {
@@ -150,6 +197,7 @@ public class CommandParser {
             interpreted = interpretLocally(rawInput);
         }
 
+        interpreted = normalizeInterpretedCommand(interpreted);
         Command interpretedCommand = getInterpretedCommand(interpreted);
         if (interpretedCommand == null) {
             return null;
@@ -160,6 +208,34 @@ public class CommandParser {
         return interpretedCommand;
     }
 
+    private String normalizeInterpretedCommand(String interpreted) {
+        if (interpreted == null) {
+            return null;
+        }
+
+        String trimmed = interpreted.trim();
+        if (!trimmed.startsWith("{")) {
+            return firstLine(trimmed);
+        }
+
+        try {
+            JsonObject object = JsonParser.parseString(trimmed).getAsJsonObject();
+            String command = object.get("command").getAsString();
+            List<String> args = new ArrayList<>();
+            JsonElement argsElement = object.get("args");
+            if (argsElement != null && argsElement.isJsonArray()) {
+                JsonArray array = argsElement.getAsJsonArray();
+                for (JsonElement element : array) {
+                    args.add(element.getAsString());
+                }
+            }
+
+            return (command + " " + String.join(" ", args)).trim();
+        } catch (Exception e) {
+            return firstLine(trimmed);
+        }
+    }
+
     private String interpretLocally(String rawInput) {
         List<String> tokens = tokenize(rawInput);
         int filenameIndex = findLastFilenameIndex(tokens);
@@ -168,7 +244,7 @@ public class CommandParser {
         }
 
         if (containsWord(rawInput, "create") || containsWord(rawInput, "make")) {
-            return "create " + tokens.get(filenameIndex);
+            return "{\"command\":\"create\",\"args\":[\"" + tokens.get(filenameIndex) + "\"]}";
         }
 
         if (containsWord(rawInput, "write")) {
@@ -190,6 +266,26 @@ public class CommandParser {
         }
 
         return null;
+    }
+
+    private String expandAlias(String rawInput, List<String> tokens) {
+        return aliasStore.resolve(tokens.get(0))
+                .map(alias -> {
+                    List<String> rest = tokens.size() > 1 ? tokens.subList(1, tokens.size()) : List.of();
+                    return (alias + " " + String.join(" ", rest)).trim();
+                })
+                .orElse(rawInput);
+    }
+
+    private Optional<String> suggestCommand(String commandName) {
+        List<String> known = new ArrayList<>(registry.keySet());
+        known.addAll(COMMON_OS_COMMANDS);
+        return AutoCorrect.suggest(commandName, known);
+    }
+
+    private String firstLine(String text) {
+        int newlineIndex = text.indexOf('\n');
+        return newlineIndex >= 0 ? text.substring(0, newlineIndex).trim() : text;
     }
 
     private int findLastFilenameIndex(List<String> tokens) {
@@ -285,11 +381,7 @@ public class CommandParser {
 
     private List<String> tokenize(String input) {
         List<String> tokens = new ArrayList<>();
-        if (input == null) {
-            return tokens;
-        }
-
-        if (input.isBlank()) {
+        if (input == null || input.isBlank()) {
             return tokens;
         }
 

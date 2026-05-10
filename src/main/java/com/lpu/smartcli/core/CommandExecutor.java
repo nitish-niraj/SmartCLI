@@ -2,13 +2,56 @@ package com.lpu.smartcli.core;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 public class CommandExecutor {
+    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool(runnable -> {
+        Thread thread = new Thread(runnable, "smartcli-command-executor");
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    private CommandExecutor() {
+    }
 
     public static CommandResult execute(String commandString) {
+        return executeAsync(commandString).join();
+    }
+
+    public static CompletableFuture<CommandResult> executeAsync(String commandString) {
+        return executeAsync(commandString, Path.of(System.getProperty("user.dir")), line -> {
+        }, line -> {
+        });
+    }
+
+    public static CompletableFuture<CommandResult> executeAsync(
+            String commandString,
+            Path workingDirectory,
+            Consumer<String> stdoutConsumer,
+            Consumer<String> stderrConsumer
+    ) {
+        return CompletableFuture.supplyAsync(() -> run(commandString, workingDirectory, stdoutConsumer, stderrConsumer), EXECUTOR);
+    }
+
+    public static void shutdown() {
+        EXECUTOR.shutdownNow();
+    }
+
+    private static CommandResult run(
+            String commandString,
+            Path workingDirectory,
+            Consumer<String> stdoutConsumer,
+            Consumer<String> stderrConsumer
+    ) {
+        StringBuilder stdout = new StringBuilder();
+        StringBuilder stderr = new StringBuilder();
+
         try {
             String[] shellPrefix = PlatformDetector.getShellPrefix();
             String[] command = new String[shellPrefix.length + 1];
@@ -17,37 +60,42 @@ public class CommandExecutor {
 
             ProcessBuilder processBuilder = new ProcessBuilder(command);
             processBuilder.redirectErrorStream(false);
+            if (workingDirectory != null) {
+                processBuilder.directory(workingDirectory.toFile());
+            }
 
             Process process = processBuilder.start();
 
-            String stdout;
-            try (BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                stdout = readFully(stdoutReader);
-            }
-
-            String stderr;
-            try (BufferedReader stderrReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-                stderr = readFully(stderrReader);
-            }
+            CompletableFuture<Void> stdoutFuture = stream(process.getInputStream(), stdout, stdoutConsumer);
+            CompletableFuture<Void> stderrFuture = stream(process.getErrorStream(), stderr, stderrConsumer);
 
             int exitCode = process.waitFor();
-            return new CommandResult(stdout, stderr, exitCode);
+            CompletableFuture.allOf(stdoutFuture, stderrFuture).join();
+
+            return new CommandResult(stdout.toString(), stderr.toString(), exitCode);
         } catch (Exception exception) {
-            return new CommandResult("", exception.getMessage(), -1);
+            String message = exception.getMessage() == null ? "Unknown execution error" : exception.getMessage();
+            stderrConsumer.accept(message);
+            return new CommandResult(stdout.toString(), message, -1);
         }
     }
 
-    public static void main(String[] args) {
-        CommandResult result = execute("echo SmartCLI Phase 3 Working");
-        System.out.print(result.getStdout());
-    }
-
-    private static String readFully(BufferedReader reader) throws IOException {
-        List<String> lines = new ArrayList<>();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            lines.add(line);
-        }
-        return String.join(System.lineSeparator(), lines);
+    private static CompletableFuture<Void> stream(InputStream inputStream, StringBuilder collector, Consumer<String> consumer) {
+        return CompletableFuture.runAsync(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    synchronized (collector) {
+                        if (collector.length() > 0) {
+                            collector.append(System.lineSeparator());
+                        }
+                        collector.append(line);
+                    }
+                    consumer.accept(line);
+                }
+            } catch (IOException e) {
+                consumer.accept("Error reading process output: " + e.getMessage());
+            }
+        }, EXECUTOR);
     }
 }

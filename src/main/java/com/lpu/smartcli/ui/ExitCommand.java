@@ -1,37 +1,36 @@
 package com.lpu.smartcli.ui;
 
 import com.lpu.smartcli.core.Command;
+import com.lpu.smartcli.core.CommandExecutor;
 import com.lpu.smartcli.data.FileSystem;
+import com.lpu.smartcli.data.HistoryDatabase;
 
-/**
- * ExitCommand placeholder for terminal exit functionality.
- * Implementation to be added in Phase 1.
- *
- * @author SmartCLI Team
- * @version 1.0.0
- */
 public class ExitCommand implements Command {
+    private final HistoryDatabase historyDatabase;
+    private final ConfigManager configManager;
 
-    /**
-     * Executes the exit command.
-     *
-     * @param args the command line arguments
-     * @param fs   the file system context
-     * @todo Implement exit command execution
-     * @todo Save session data before exiting
-     * @todo Cleanup resources
-     */
+    public ExitCommand() {
+        this(null, null);
+    }
+
+    public ExitCommand(HistoryDatabase historyDatabase, ConfigManager configManager) {
+        this.historyDatabase = historyDatabase;
+        this.configManager = configManager;
+    }
+
     @Override
     public void execute(String[] args, FileSystem fs) {
+        if (configManager != null) {
+            configManager.close();
+        }
+        if (historyDatabase != null) {
+            historyDatabase.close();
+        }
+        CommandExecutor.shutdown();
         System.out.println("Exiting Smart CLI. Goodbye!");
         System.exit(0);
     }
 
-    /**
-     * Returns a description of the exit command.
-     *
-     * @return the command description
-     */
     @Override
     public String getDescription() {
         return "exit — Exit the application";

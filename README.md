@@ -16,7 +16,18 @@ The animation above condenses the real terminal flow: Maven build, Unicode launc
 | Entry point | `com.lpu.smartcli.ui.Terminal` |
 | Runnable JAR | `target/SmartCLI.jar` |
 | Test framework | JUnit 5 |
-| Current test count | 109 tests |
+| Current test count | 124 tests |
+
+## Documentation Hub
+
+All detailed project and release documents are now organized under the `docs/` folder:
+
+- `docs/QUICK_START.md` - fastest deployment path
+- `docs/DEPLOYMENT_CHECKLIST.md` - final release checklist
+- `docs/IMPLEMENTATION_SUMMARY.md` - complete implementation summary
+- `docs/RELEASE_NOTES.md` - release notes and installer details
+- `docs/CONTRIBUTING.md` - contributor workflow
+- `docs/FEATURE_REPORT.md` - feature coverage analysis
 
 ## Feature Analysis
 
@@ -65,6 +76,12 @@ All SmartCLI file commands are resolved relative to this working directory.
 | `list` | Lists files in the current SmartCLI directory |
 | `cd <path>` | Changes the SmartCLI working directory |
 | `pwd` | Prints the SmartCLI working directory |
+| `alias add <name> <command>` | Saves a shortcut in `~/.smartcli/config.json` |
+| `alias list` | Lists saved aliases |
+| `alias delete <name>` | Deletes an alias |
+| `theme` | Shows the saved terminal theme |
+| `theme switch` | Toggles and saves dark/light theme preference |
+| `gitstatus` | Shows Git status through JGit |
 | `help` | Shows all built-in commands |
 | `exit` | Exits the application |
 
@@ -151,14 +168,34 @@ The project also includes utility modules for:
 - System information
 - File-system browsing
 
-### 8. Testing
+### 8. Persistence, Console, and GUI
+
+SmartCLI now stores command history in SQLite at:
+
+```text
+~\.smartcli\history.db
+```
+
+It stores aliases, theme preference, and other settings in:
+
+```text
+~\.smartcli\config.json
+```
+
+The console uses JLine for a more professional terminal experience with line editing and completion support. GUI mode is also available through JavaFX:
+
+```powershell
+java -Dfile.encoding=UTF-8 -jar target\SmartCLI.jar --mode gui
+```
+
+### 9. Testing
 
 The project includes a JUnit 5 test suite covering the data layer, file operations, history, sessions, integration helpers, and smart-search utilities.
 
 Current result:
 
 ```text
-Tests run: 109, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 124, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
@@ -215,6 +252,16 @@ Using global Maven:
 ```powershell
 mvn test
 ```
+
+## Native Installer
+
+Windows installer packaging can be created with Java's `jpackage` using the helper script:
+
+```powershell
+.\scripts\build-installer.ps1
+```
+
+The Maven `jpackage-maven-plugin` configuration is also included in `pom.xml`.
 
 ## Demo
 

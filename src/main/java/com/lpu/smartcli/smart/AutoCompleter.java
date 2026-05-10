@@ -1,16 +1,30 @@
 package com.lpu.smartcli.smart;
 
 import com.lpu.smartcli.core.Command;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class AutoCompleter {
-    private List<String> knownCommands;
+    private final List<String> knownCommands;
+    private Path workingDirectory;
 
     public AutoCompleter(Map<String, Command> registry) {
-        knownCommands = new ArrayList<>(registry.keySet());
+        this(registry, Path.of(System.getProperty("user.dir")));
+    }
+
+    public AutoCompleter(Map<String, Command> registry, Path workingDirectory) {
+        this.knownCommands = new ArrayList<>(registry.keySet());
+        this.workingDirectory = workingDirectory == null ? Path.of(System.getProperty("user.dir")) : workingDirectory;
+    }
+
+    public void setWorkingDirectory(Path workingDirectory) {
+        if (workingDirectory != null) {
+            this.workingDirectory = workingDirectory;
+        }
     }
 
     public List<String> suggestCommand(String partial) {
@@ -29,17 +43,14 @@ public class AutoCompleter {
     public List<String> suggestFile(String partial) {
         List<String> matches = new ArrayList<>();
         String safePartial = partial == null ? "" : partial;
-        File currentDirectory = new File(System.getProperty("user.dir"));
-        File[] files = currentDirectory.listFiles();
 
-        if (files == null) {
+        try (var paths = Files.list(workingDirectory)) {
+            paths.map(path -> path.getFileName().toString())
+                    .filter(name -> name.startsWith(safePartial))
+                    .sorted()
+                    .forEach(matches::add);
+        } catch (Exception e) {
             return matches;
-        }
-
-        for (File file : files) {
-            if (file.getName().startsWith(safePartial)) {
-                matches.add(file.getName());
-            }
         }
 
         return matches;
@@ -63,6 +74,19 @@ public class AutoCompleter {
         }
 
         String lastToken = tokens[tokens.length - 1];
+        if ("git".equalsIgnoreCase(tokens[0]) && tokens.length == 2) {
+            List<String> gitMatches = suggestGitSubcommand(lastToken);
+            if (gitMatches.size() == 1) {
+                tokens[tokens.length - 1] = gitMatches.get(0);
+                return String.join(" ", tokens);
+            }
+
+            if (gitMatches.size() > 1) {
+                System.out.println(String.join("  ", gitMatches));
+            }
+            return input;
+        }
+
         List<String> matches = suggestFile(lastToken);
         if (matches.size() == 1) {
             tokens[tokens.length - 1] = matches.get(0);
@@ -74,5 +98,12 @@ public class AutoCompleter {
         }
 
         return input;
+    }
+
+    private List<String> suggestGitSubcommand(String partial) {
+        String safePartial = partial == null ? "" : partial.toLowerCase();
+        return Arrays.asList("commit", "push", "pull", "status", "log", "clone").stream()
+                .filter(command -> command.startsWith(safePartial))
+                .toList();
     }
 }

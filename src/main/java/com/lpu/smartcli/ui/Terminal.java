@@ -12,16 +12,17 @@ public class Terminal {
         System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
 
         FileSystem fs = new FileSystem();
-        SessionManager session = new SessionManager();
         HistoryDatabase db = new HistoryDatabase();
+        SessionManager session = new SessionManager(db);
+        ConfigManager config = new ConfigManager();
 
         printBanner();
 
         String mode = parseMode(args);
         if ("gui".equals(mode)) {
-            launchGui(fs, session, db);
+            launchGui(fs, session, db, config);
         } else {
-            launchConsole(fs, session, db);
+            launchConsole(fs, session, db, config);
         }
     }
 
@@ -43,12 +44,12 @@ public class Terminal {
         System.out.println("╚══════════════════════════════════════╝");
     }
 
-    private static void launchConsole(FileSystem fs, SessionManager session, HistoryDatabase db) {
-        ConsoleTerminal console = new ConsoleTerminal(fs, session, db);
+    private static void launchConsole(FileSystem fs, SessionManager session, HistoryDatabase db, ConfigManager config) {
+        ConsoleTerminal console = new ConsoleTerminal(fs, session, db, config);
         console.start();
     }
 
-    private static void launchGui(FileSystem fs, SessionManager session, HistoryDatabase db) {
-        System.out.println("GUI mode launching...");
+    private static void launchGui(FileSystem fs, SessionManager session, HistoryDatabase db, ConfigManager config) {
+        TerminalPane.launchGui(fs, session, db, config);
     }
 }

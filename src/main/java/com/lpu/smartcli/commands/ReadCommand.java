@@ -22,6 +22,11 @@ public class ReadCommand implements Command {
             return;
         }
 
+        if (content.isEmpty()) {
+            System.out.println("File '" + args[0] + "' is empty.");
+            return;
+        }
+
         System.out.println("--- " + args[0] + " ---");
         System.out.println(content);
         System.out.println("-----------------");

@@ -21,6 +21,18 @@ public class GitIntegration {
             this.untracked = untracked;
         }
 
+        public Set<String> getModified() {
+            return modified;
+        }
+
+        public Set<String> getStaged() {
+            return staged;
+        }
+
+        public Set<String> getUntracked() {
+            return untracked;
+        }
+
         @Override
         public String toString() {
             return "Modified: " + modified

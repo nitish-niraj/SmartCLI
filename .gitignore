@@ -29,3 +29,17 @@ Thumbs.db
 .env
 config.properties
 *.properties
+
+# Installers and Build Artifacts
+target/installer/
+target/jpackage-input/
+*.exe
+*.msi
+*.deb
+*.dmg
+*.rpm
+
+# Release files
+*.zip
+dist/
+RELEASE_NOTES_TEMP.md

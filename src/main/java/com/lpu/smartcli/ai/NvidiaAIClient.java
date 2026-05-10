@@ -19,7 +19,8 @@ public class NvidiaAIClient {
     private static final String MISSING_CONFIG_MESSAGE =
             "ERROR: config.properties not found. Create it at project root with: nvidia.api.key=YOUR_KEY";
     private static final String SYSTEM_PROMPT =
-            "You are a command interpreter for a file system CLI. Convert natural language to exactly one CLI command. "
+            "You are a command interpreter for a file system CLI. Convert natural language to exactly one JSON command object. "
+                    + "Return JSON only in this shape: {\"command\":\"create\",\"args\":[\"hello.py\"]}. "
                     + "Rules: 1) create filename — creates a file. "
                     + "2) write filename content — writes content to file, filename always comes BEFORE content. "
                     + "3) read filename — reads a file. "
@@ -27,13 +28,13 @@ public class NvidiaAIClient {
                     + "5) list — lists all files. "
                     + "6) help — shows help. "
                     + "If the user asks to do two things at once like create a file AND write to it, only return the FIRST operation. "
-                    + "Never combine two commands. Never return two lines. Always return exactly one command. "
+                    + "Never combine two commands. Never return two lines. Always return exactly one JSON object. "
                     + "For create commands, the filename is always the last word that contains a dot extension like .py .txt .java. "
                     + "Ignore all other words like one, a, the, new. "
-                    + "Reply with ONLY the command. No explanation. No quotes. No punctuation. "
-                    + "Examples: user says make hello.py → create hello.py. "
-                    + "User says write hello world to notes.txt → write notes.txt hello world. "
-                    + "User says show notes.txt contents → read notes.txt.";
+                    + "Reply with ONLY JSON. No explanation and no markdown. "
+                    + "Examples: user says make hello.py → {\"command\":\"create\",\"args\":[\"hello.py\"]}. "
+                    + "User says write hello world to notes.txt → {\"command\":\"write\",\"args\":[\"notes.txt\",\"hello world\"]}. "
+                    + "User says show notes.txt contents → {\"command\":\"read\",\"args\":[\"notes.txt\"]}.";
     private final String apiKey;
 
     public NvidiaAIClient() {

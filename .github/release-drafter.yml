@@ -1,0 +1,88 @@
+name-template: 'SmartCLI $NEXT_PATCH_VERSION'
+tag-template: 'v$NEXT_PATCH_VERSION'
+
+categories:
+  - title: '🚀 Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'bug'
+      - 'bugfix'
+  - title: '📚 Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: '⚙️ Build & CI'
+    labels:
+      - 'build'
+      - 'ci'
+      - 'github-actions'
+  - title: '🧪 Testing'
+    labels:
+      - 'testing'
+      - 'test'
+  - title: '♻️ Refactoring'
+    labels:
+      - 'refactor'
+      - 'cleanup'
+  - title: '🔒 Security'
+    labels:
+      - 'security'
+
+exclude-labels:
+  - 'skip-changelog'
+  - 'internal'
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+  minor:
+    labels:
+      - 'minor'
+  patch:
+    labels:
+      - 'patch'
+
+template: |
+  ## SmartCLI $NEXT_PATCH_VERSION - Release
+  
+  **Release Date:** $RELEASE_DATE
+  
+  ### What's New
+  $CHANGES
+  
+  ### Download
+  - 📦 **[SmartCLI.jar](releases/download/$NEXT_PATCH_VERSION/SmartCLI.jar)** - Cross-platform JAR
+  - 🪟 **Windows** - [SmartCLI-installer.exe](releases/download/$NEXT_PATCH_VERSION/SmartCLI-installer.exe)
+  - 🐧 **Linux** - [smartcli_$NEXT_PATCH_VERSION_amd64.deb](releases/download/$NEXT_PATCH_VERSION/smartcli_$NEXT_PATCH_VERSION_amd64.deb)
+  - 🍎 **macOS** - [SmartCLI-$NEXT_PATCH_VERSION.dmg](releases/download/$NEXT_PATCH_VERSION/SmartCLI-$NEXT_PATCH_VERSION.dmg)
+  
+  ### Installation Instructions
+  
+  **Windows:**
+  ```cmd
+  SmartCLI-installer.exe
+  ```
+  
+  **Linux:**
+  ```bash
+  sudo dpkg -i smartcli_$NEXT_PATCH_VERSION_amd64.deb
+  smartcli --mode console
+  ```
+  
+  **macOS:**
+  ```bash
+  open SmartCLI-$NEXT_PATCH_VERSION.dmg
+  # Drag SmartCLI.app to Applications folder
+  /Applications/SmartCLI.app/Contents/MacOS/SmartCLI --mode console
+  ```
+  
+  **Cross-Platform (JAR):**
+  ```bash
+  java -jar SmartCLI.jar --mode console
+  # or GUI mode:
+  java -jar SmartCLI.jar --mode gui
+  ```

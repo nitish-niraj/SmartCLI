@@ -1,19 +1,19 @@
 package com.lpu.smartcli.commands;
 
 import com.lpu.smartcli.core.Command;
+import com.lpu.smartcli.core.CommandExecutor;
+import com.lpu.smartcli.core.CommandResult;
 import com.lpu.smartcli.data.FileSystem;
 import com.lpu.smartcli.utils.SafetyFilter;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.Scanner;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class OsCommand implements Command {
     private static Scanner sharedScanner;
+    private static volatile CommandResult lastResult;
 
     private final String[] tokens;
 
@@ -25,6 +25,10 @@ public class OsCommand implements Command {
         sharedScanner = scanner;
     }
 
+    public static CommandResult getLastResult() {
+        return lastResult;
+    }
+
     @Override
     public void execute(String[] args, FileSystem fs) {
         String commandLine = String.join(" ", tokens).trim();
@@ -32,84 +36,41 @@ public class OsCommand implements Command {
             return;
         }
 
-        SafetyFilter.FilterResult filterResult = SafetyFilter.check(commandLine, sharedScanner);
+        Scanner scanner = sharedScanner == null ? new Scanner(System.in) : sharedScanner;
+        SafetyFilter.FilterResult filterResult = SafetyFilter.check(commandLine, scanner);
         if (filterResult == SafetyFilter.FilterResult.DANGEROUS
                 || filterResult == SafetyFilter.FilterResult.INTERACTIVE
                 || filterResult == SafetyFilter.FilterResult.BLOCKED) {
             return;
         }
 
-        ProcessBuilder processBuilder = createProcessBuilder(commandLine);
-        if (fs != null) {
-            processBuilder.directory(fs.getWorkingDirectory().toFile());
-        }
-        try {
-            Process process = processBuilder.start();
+        Path workingDirectory = fs == null ? Path.of(System.getProperty("user.dir")) : fs.getWorkingDirectory();
+        CompletableFuture<CommandResult> future = CommandExecutor.executeAsync(
+                commandLine,
+                workingDirectory,
+                System.out::println,
+                System.err::println
+        );
 
-            Thread stdoutThread = streamOutput(process.getInputStream(), false);
-            Thread stderrThread = streamOutput(process.getErrorStream(), true);
-
-            if (filterResult == SafetyFilter.FilterResult.LONG_RUNNING) {
-                boolean finished = process.waitFor(10, TimeUnit.SECONDS);
-                if (!finished) {
-                    System.out.println("[OS] Command timed out or requires interactive input — not supported.");
-                    process.destroyForcibly();
-                    stdoutThread.join();
-                    stderrThread.join();
-                    return;
-                }
-            } else {
-                process.waitFor();
+        if (filterResult == SafetyFilter.FilterResult.LONG_RUNNING) {
+            try {
+                lastResult = future.get(10, TimeUnit.SECONDS);
+                System.out.println("OS command exited with code: " + lastResult.getExitCode());
+            } catch (Exception e) {
+                future.cancel(true);
+                System.out.println("[OS] Command timed out or requires interactive input — not supported.");
             }
-
-            int exitCode = process.exitValue();
-            stdoutThread.join();
-            stderrThread.join();
-
-            System.out.println("OS command exited with code: " + exitCode);
-        } catch (IOException e) {
-            System.out.println("Failed to run OS command: " + e.getMessage());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.out.println("OS command interrupted.");
+            return;
         }
+
+        future.thenAccept(result -> {
+            lastResult = result;
+            System.out.println("OS command exited with code: " + result.getExitCode());
+        });
     }
 
     @Override
     public String getDescription() {
         return "Runs an operating system command";
-    }
-
-    private ProcessBuilder createProcessBuilder(String commandLine) {
-        if (isWindows()) {
-            return new ProcessBuilder("cmd.exe", "/c", commandLine);
-        }
-
-        return new ProcessBuilder("sh", "-c", commandLine);
-    }
-
-    private boolean isWindows() {
-        return System.getProperty("os.name").toLowerCase().contains("win");
-    }
-
-    private Thread streamOutput(InputStream inputStream, boolean errorStream) {
-        Thread thread = new Thread(() -> {
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(inputStream, Charset.defaultCharset()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (errorStream) {
-                        System.err.println(line);
-                    } else {
-                        System.out.println(line);
-                    }
-                }
-            } catch (IOException e) {
-                System.out.println("Error reading OS command output: " + e.getMessage());
-            }
-        });
-
-        thread.start();
-        return thread;
     }
 }

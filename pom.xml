@@ -6,13 +6,17 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.lpu.smartcli</groupId>
   <artifactId>SmartCLI</artifactId>
-  <version>1.0.0</version>
+  <version>3.2.0</version>
   <packaging>jar</packaging>
 
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <javafx.version>21.0.4</javafx.version>
+    <javafx.platform>win</javafx.platform>
+    <os.detected.name>windows</os.detected.name>
+    <os.detected.arch>x86_64</os.detected.arch>
   </properties>
 
   <dependencies>
@@ -37,10 +41,28 @@
       <artifactId>slf4j-nop</artifactId>
       <version>1.7.36</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.11.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jline</groupId>
+      <artifactId>jline</artifactId>
+      <version>3.26.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>${javafx.version}</version>
+      <classifier>${javafx.platform}</classifier>
+    </dependency>
   </dependencies>
 
   <build>
+    <finalName>SmartCLI</finalName>
     <plugins>
+      <!-- Maven Jar Plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -51,14 +73,170 @@
               <mainClass>com.lpu.smartcli.ui.Terminal</mainClass>
             </manifest>
           </archive>
-          <finalName>SmartCLI</finalName>
         </configuration>
       </plugin>
+
+      <!-- Maven Shade Plugin for Fat JAR -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.6.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.lpu.smartcli.ui.Terminal</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Maven Surefire Plugin for Testing -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.1.2</version>
       </plugin>
+
+      <!-- Maven Dependency Plugin: Copy JAR for jpackage -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.6.1</version>
+        <executions>
+          <execution>
+            <id>prepare-jpackage-input</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                  <type>jar</type>
+                  <outputDirectory>target/jpackage-input</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- JPackage Maven Plugin for Native Installers -->
+      <plugin>
+        <groupId>org.panteleyev</groupId>
+        <artifactId>jpackage-maven-plugin</artifactId>
+        <version>1.6.6</version>
+        <configuration>
+          <name>SmartCLI</name>
+          <appVersion>${project.version}</appVersion>
+          <vendor>LPU CAP477</vendor>
+          <description>SmartCLI - Intelligent Command Line Interface with AI Layer</description>
+          <destination>target/installer</destination>
+          <input>target/jpackage-input</input>
+          <mainJar>SmartCLI.jar</mainJar>
+          <mainClass>com.lpu.smartcli.ui.Terminal</mainClass>
+          <runtimeImage>target/java-runtime</runtimeImage>
+          <resourceDir>src/main/resources</resourceDir>
+          <verbosity>verbose</verbosity>
+        </configuration>
+      </plugin>
+
+      <!-- Maven Assembly Plugin for Source Distribution -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.6.0</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>com.lpu.smartcli.ui.Terminal</mainClass>
+            </manifest>
+          </archive>
+          <finalName>SmartCLI-${project.version}</finalName>
+          <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
+
+  <!-- Build Profiles for Cross-Platform -->
+  <profiles>
+    <!-- Windows Profile -->
+    <profile>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <javafx.platform>win</javafx.platform>
+        <jpackage.os>windows</jpackage.os>
+      </properties>
+    </profile>
+
+    <!-- Linux Profile -->
+    <profile>
+      <id>linux</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <name>Linux</name>
+        </os>
+      </activation>
+      <properties>
+        <javafx.platform>linux</javafx.platform>
+        <jpackage.os>linux</jpackage.os>
+      </properties>
+    </profile>
+
+    <!-- macOS Profile -->
+    <profile>
+      <id>macos</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <name>Mac OS X</name>
+        </os>
+      </activation>
+      <properties>
+        <javafx.platform>mac</javafx.platform>
+        <jpackage.os>macos</jpackage.os>
+      </properties>
+    </profile>
+  </profiles>
 </project>
