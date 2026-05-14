@@ -1,11 +1,11 @@
 package com.lpu.smartcli.ui;
 
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+
 import com.lpu.smartcli.data.FileSystem;
 import com.lpu.smartcli.data.HistoryDatabase;
 import com.lpu.smartcli.data.SessionManager;
-
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 
 public class Terminal {
     public static void main(String[] args) {
@@ -37,11 +37,11 @@ public class Terminal {
     }
 
     private static void printBanner() {
-        System.out.println("╔══════════════════════════════════════╗");
-        System.out.println("║   Smart Command Line System v1.0     ║");
-        System.out.println("║   LPU | CAP477 | Section D2526       ║");
-        System.out.println("║   Supervisor: Dr. Prince Arora       ║");
-        System.out.println("╚══════════════════════════════════════╝");
+        System.out.println("+--------------------------------------+");
+        System.out.println("|   Smart Command Line System v1.0     |");
+        System.out.println("|   LPU | CAP477 | Section D2526       |");
+        System.out.println("|   Supervisor: Dr. Prince Arora       |");
+        System.out.println("+--------------------------------------+");
     }
 
     private static void launchConsole(FileSystem fs, SessionManager session, HistoryDatabase db, ConfigManager config) {
