@@ -1,5 +1,14 @@
 package com.lpu.smartcli.ui;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -9,26 +18,25 @@ import com.lpu.smartcli.commands.AliasCommand;
 import com.lpu.smartcli.commands.CdCommand;
 import com.lpu.smartcli.commands.CreateCommand;
 import com.lpu.smartcli.commands.DeleteCommand;
+import com.lpu.smartcli.commands.GitDiffCommand;
+import com.lpu.smartcli.commands.GitLogCommand;
 import com.lpu.smartcli.commands.GitStatusCommand;
+import com.lpu.smartcli.commands.KillCommand;
 import com.lpu.smartcli.commands.ListCommand;
 import com.lpu.smartcli.commands.OsCommand;
+import com.lpu.smartcli.commands.PsCommand;
 import com.lpu.smartcli.commands.PwdCommand;
 import com.lpu.smartcli.commands.ReadCommand;
 import com.lpu.smartcli.commands.ThemeCommand;
 import com.lpu.smartcli.commands.WriteCommand;
 import com.lpu.smartcli.core.Command;
-import com.lpu.smartcli.smart.AutoCorrect;
-import com.lpu.smartcli.storage.AliasStore;
+import com.lpu.smartcli.data.FileSystem;
 import com.lpu.smartcli.data.HistoryDatabase;
 import com.lpu.smartcli.data.SessionManager;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import com.lpu.smartcli.plugins.PluginManager;
+import com.lpu.smartcli.smart.AutoCorrect;
+import com.lpu.smartcli.storage.AliasStore;
+import com.lpu.smartcli.utils.AppLogger;
 
 public class CommandParser {
     public static boolean AI_ENABLED = true;
@@ -53,14 +61,18 @@ public class CommandParser {
     private String lastInterpretedInput;
 
     public CommandParser() {
-        this(null, new HistoryDatabase(":memory:"), new ConfigManager());
+        this(null, new HistoryDatabase(":memory:"), new ConfigManager(), null);
     }
 
     public CommandParser(ConfigManager configManager) {
-        this(null, new HistoryDatabase(":memory:"), configManager);
+        this(null, new HistoryDatabase(":memory:"), configManager, null);
     }
 
     public CommandParser(SessionManager session, HistoryDatabase history, ConfigManager configManager) {
+        this(session, history, configManager, null);
+    }
+
+    public CommandParser(SessionManager session, HistoryDatabase history, ConfigManager configManager, FileSystem persistenceFileSystem) {
         registry = new LinkedHashMap<>();
         aliasStore = new AliasStore(configManager);
         ThemeManager themeManager = new ThemeManager(configManager);
@@ -75,8 +87,17 @@ public class CommandParser {
         registry.put("alias", new AliasCommand(aliasStore));
         registry.put("theme", new ThemeCommand(themeManager));
         registry.put("gitstatus", new GitStatusCommand());
+        registry.put("gitlog", new GitLogCommand());
+        registry.put("gitdiff", new GitDiffCommand());
+        registry.put("ps", new PsCommand());
+        registry.put("kill", new KillCommand());
+        registry.put("rsearch", new com.lpu.smartcli.commands.RSearchCommand(session, history, persistenceFileSystem, this));
+
+        Path pluginDir = Path.of(System.getProperty("user.home"), ".smartcli", "plugins");
+        new PluginManager(pluginDir).registerPlugins(registry);
+
         registry.put("help", new HelpCommand(registry));
-        registry.put("exit", new ExitCommand(history, configManager));
+        registry.put("exit", new ExitCommand(history, configManager, persistenceFileSystem, session));
 
         try {
             aiClient = new NvidiaAIClient();
@@ -98,7 +119,7 @@ public class CommandParser {
         if (!routedInput.equals(rawInput)) {
             lastInterpretedInput = routedInput;
             tokens = tokenize(routedInput);
-            System.out.println("[alias] " + rawInput + " -> " + routedInput);
+            AppLogger.getLogger(CommandParser.class).info("[alias] {} -> {}", rawInput, routedInput);
         }
 
         Command found = registry.get(tokens.get(0));
@@ -116,7 +137,7 @@ public class CommandParser {
 
         Optional<String> suggestion = suggestCommand(tokens.get(0));
         if (suggestion.isPresent() && !tokens.get(0).equalsIgnoreCase(suggestion.get())) {
-            System.out.println("Unknown command. Did you mean: " + suggestion.get() + "?");
+            AppLogger.getLogger(CommandParser.class).info("Unknown command. Did you mean: {}?", suggestion.get());
             return null;
         }
 
@@ -132,6 +153,12 @@ public class CommandParser {
 
     public Map<String, Command> getRegistry() {
         return registry;
+    }
+
+    public Optional<String> suggestCommandName(String commandName) {
+        List<String> known = new ArrayList<>(registry.keySet());
+        known.addAll(COMMON_OS_COMMANDS);
+        return AutoCorrect.suggest(commandName, known);
     }
 
     public String[] getArgs(String rawInput) {
@@ -154,13 +181,13 @@ public class CommandParser {
             Command localCommand = getInterpretedCommand(localInterpretation);
             if (localCommand != null) {
                 lastInterpretedInput = localInterpretation;
-                System.out.println("[AI] Interpreted as: " + lastInterpretedInput);
+                AppLogger.getLogger(CommandParser.class).info("[AI] Interpreted as: {}", lastInterpretedInput);
                 return localCommand;
             }
 
-            if (looksLikeNaturalLanguage(rawInput)) {
-                printAiUnavailable();
-            }
+                if (looksLikeNaturalLanguage(rawInput)) {
+                    printAiUnavailable();
+                }
             return null;
         }
 
@@ -170,7 +197,7 @@ public class CommandParser {
         }
 
         if (containsWord(rawInput, "write")) {
-            System.out.println("[AI] For writing use: write filename your content here");
+            AppLogger.getLogger(CommandParser.class).info("[AI] For writing use: write filename your content here");
             return null;
         }
 
@@ -184,7 +211,7 @@ public class CommandParser {
         }
 
         if ("write".equals(interpretedTokens.get(0)) && interpretedTokens.size() < 3) {
-            System.out.println("[AI] Use: write filename your content here");
+            AppLogger.getLogger(CommandParser.class).info("[AI] Use: write filename your content here");
             return null;
         }
 
@@ -204,7 +231,7 @@ public class CommandParser {
         }
 
         lastInterpretedInput = interpreted.trim();
-        System.out.println("[AI] Interpreted as: " + lastInterpretedInput);
+        AppLogger.getLogger(CommandParser.class).info("[AI] Interpreted as: {}", lastInterpretedInput);
         return interpretedCommand;
     }
 
@@ -232,6 +259,7 @@ public class CommandParser {
 
             return (command + " " + String.join(" ", args)).trim();
         } catch (Exception e) {
+            AppLogger.getLogger(CommandParser.class).debug("Failed to parse AI JSON: {}", e.getMessage());
             return firstLine(trimmed);
         }
     }
@@ -278,9 +306,7 @@ public class CommandParser {
     }
 
     private Optional<String> suggestCommand(String commandName) {
-        List<String> known = new ArrayList<>(registry.keySet());
-        known.addAll(COMMON_OS_COMMANDS);
-        return AutoCorrect.suggest(commandName, known);
+        return suggestCommandName(commandName);
     }
 
     private String firstLine(String text) {
@@ -315,7 +341,7 @@ public class CommandParser {
     }
 
     private void printAiUnavailable() {
-        System.out.println("[AI] AI layer unavailable. Please create config.properties with your NVIDIA API key.");
+        AppLogger.getLogger(CommandParser.class).warn("[AI] AI layer unavailable. Please create config.properties with your NVIDIA API key.");
     }
 
     private boolean looksLikeNaturalLanguage(String input) {

@@ -15,6 +15,7 @@ public class Terminal {
         HistoryDatabase db = new HistoryDatabase();
         SessionManager session = new SessionManager(db);
         ConfigManager config = new ConfigManager();
+        config.restoreSessionState(fs, session);
 
         printBanner();
 

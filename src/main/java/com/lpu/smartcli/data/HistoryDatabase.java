@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.lpu.smartcli.utils.AppLogger;
+
 public class HistoryDatabase implements AutoCloseable {
     private final Connection connection;
 
@@ -31,6 +33,7 @@ public class HistoryDatabase implements AutoCloseable {
 
             connection = DriverManager.getConnection("jdbc:sqlite:" + customDbPath);
             initialize();
+            AppLogger.getLogger(HistoryDatabase.class).info("Opened SQLite history database at {}", customDbPath);
         } catch (Exception e) {
             throw new IllegalStateException("Unable to open history database: " + e.getMessage(), e);
         }
@@ -46,8 +49,9 @@ public class HistoryDatabase implements AutoCloseable {
             statement.setString(2, LocalDateTime.now().toString());
             statement.setString(3, sessionId);
             statement.executeUpdate();
+            AppLogger.getLogger(HistoryDatabase.class).info("Saved history entry for session {}", sessionId);
         } catch (SQLException e) {
-            System.out.println("Error saving history: " + e.getMessage());
+            AppLogger.getLogger(HistoryDatabase.class).error("Error saving history: {}", e.getMessage(), e);
         }
     }
 
@@ -66,7 +70,7 @@ public class HistoryDatabase implements AutoCloseable {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error reading history: " + e.getMessage());
+            AppLogger.getLogger(HistoryDatabase.class).error("Error reading history: {}", e.getMessage(), e);
         }
 
         return recent;
@@ -87,7 +91,7 @@ public class HistoryDatabase implements AutoCloseable {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error searching history: " + e.getMessage());
+            AppLogger.getLogger(HistoryDatabase.class).error("Error searching history: {}", e.getMessage(), e);
         }
 
         return matches;
@@ -96,8 +100,9 @@ public class HistoryDatabase implements AutoCloseable {
     public void clearHistory() {
         try (PreparedStatement statement = connection.prepareStatement("DELETE FROM commands")) {
             statement.executeUpdate();
+            AppLogger.getLogger(HistoryDatabase.class).info("Cleared history database");
         } catch (SQLException e) {
-            System.out.println("Error clearing history: " + e.getMessage());
+            AppLogger.getLogger(HistoryDatabase.class).error("Error clearing history: {}", e.getMessage(), e);
         }
     }
 
@@ -106,7 +111,7 @@ public class HistoryDatabase implements AutoCloseable {
              ResultSet resultSet = statement.executeQuery()) {
             return resultSet.next() ? resultSet.getInt(1) : 0;
         } catch (SQLException e) {
-            System.out.println("Error counting history: " + e.getMessage());
+            AppLogger.getLogger(HistoryDatabase.class).error("Error counting history: {}", e.getMessage(), e);
             return 0;
         }
     }
@@ -126,7 +131,7 @@ public class HistoryDatabase implements AutoCloseable {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error reading session history: " + e.getMessage());
+            AppLogger.getLogger(HistoryDatabase.class).error("Error reading session history: {}", e.getMessage(), e);
         }
 
         return sessionHistory;
@@ -136,8 +141,9 @@ public class HistoryDatabase implements AutoCloseable {
     public void close() {
         try {
             connection.close();
+            AppLogger.getLogger(HistoryDatabase.class).info("Closed SQLite history database");
         } catch (SQLException e) {
-            System.out.println("Error closing history database: " + e.getMessage());
+            AppLogger.getLogger(HistoryDatabase.class).error("Error closing history database: {}", e.getMessage(), e);
         }
     }
 

@@ -24,7 +24,7 @@ public class HelpCommand implements Command {
         for (Map.Entry<String, Command> entry : registry.entrySet()) {
             String name = entry.getKey();
             String description = getDisplayDescription(name, entry.getValue().getDescription());
-            System.out.printf("\u2551  %-7s — %-38s\u2551%n", name, description);
+            System.out.printf("\u2551  %-11s — %-34s\u2551%n", name, description);
         }
 
         System.out.println("\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D");

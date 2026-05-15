@@ -13,12 +13,20 @@ public class SyntaxHighlighter {
             ARGUMENT
         }
 
-        String text;
-        TokenType type;
+        private final String text;
+        private final TokenType type;
 
         public Token(String text, TokenType type) {
             this.text = text;
             this.type = type;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public TokenType getType() {
+            return type;
         }
 
         @Override
@@ -29,7 +37,14 @@ public class SyntaxHighlighter {
 
     public static List<Token> highlight(String commandString) {
         List<Token> highlightedTokens = new ArrayList<>();
-        String[] tokens = commandString.split(" ");
+        if (commandString == null || commandString.isBlank()) {
+            return highlightedTokens;
+        }
+
+        String[] tokens = commandString.trim().split("\\s+");
+        if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isEmpty())) {
+            return highlightedTokens;
+        }
 
         for (int i = 0; i < tokens.length; i++) {
             Token.TokenType type;

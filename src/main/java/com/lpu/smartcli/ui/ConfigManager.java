@@ -4,11 +4,16 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import com.lpu.smartcli.data.FileSystem;
+import com.lpu.smartcli.data.SessionManager;
+
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ConfigManager implements AutoCloseable {
@@ -92,6 +97,42 @@ public class ConfigManager implements AutoCloseable {
         }
     }
 
+    /**
+     * Restores last working directory into the file system and session when the path still exists.
+     */
+    public void restoreSessionState(FileSystem fs, SessionManager session) {
+        if (fs == null || session == null) {
+            return;
+        }
+
+        Object cwd = values.get("lastWorkingDirectory");
+        if (!(cwd instanceof String pathText) || pathText.isBlank()) {
+            return;
+        }
+
+        try {
+            Path path = Path.of(pathText).toAbsolutePath().normalize();
+            if (Files.isDirectory(path)) {
+                fs.setWorkingDirectory(path);
+                session.setCurrentDirectory(path);
+            }
+        } catch (Exception e) {
+            System.out.println("Could not restore last working directory: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Persists the current working directory for the next launch.
+     */
+    public void persistSessionState(FileSystem fs, SessionManager session) {
+        if (fs == null || session == null) {
+            return;
+        }
+
+        values.put("lastWorkingDirectory", fs.getWorkingDirectory().toString());
+        save();
+    }
+
     @Override
     public void close() {
         save();
@@ -129,6 +170,9 @@ public class ConfigManager implements AutoCloseable {
         defaults.put("theme", "dark");
         defaults.put("historyLimit", 500);
         defaults.put("aliases", new LinkedHashMap<String, String>());
+        defaults.put("lastWorkingDirectory", null);
+        defaults.put("activeGuiTabIndex", 0);
+        defaults.put("guiTabLabels", new ArrayList<>(List.of("Shell", "Processes")));
         return defaults;
     }
 

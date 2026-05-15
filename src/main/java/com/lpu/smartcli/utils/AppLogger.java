@@ -1,8 +1,15 @@
 package com.lpu.smartcli.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Placeholder for centralized application logging.
+ * Centralized logger accessor.
  */
-public class AppLogger {
-    // TODO: Implement SLF4J + Logback backed logger utilities.
+public final class AppLogger {
+    private AppLogger() {}
+
+    public static Logger getLogger(Class<?> clazz) {
+        return LoggerFactory.getLogger(clazz);
+    }
 }

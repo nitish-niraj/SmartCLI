@@ -57,11 +57,16 @@ public class FuzzySearcher {
     }
 
     public List<String> search(String query, List<String> history) {
+        return search(query, history, 10);
+    }
+
+    public List<String> search(String query, List<String> history, int maxResults) {
         if (query == null || query.isBlank() || history == null || history.isEmpty()) {
             return new ArrayList<>();
         }
 
-        List<SearchResult> scoredResults = searchWithScores(query, history);
+        int cap = maxResults <= 0 ? 10 : Math.min(maxResults, 200);
+        List<SearchResult> scoredResults = searchWithScores(query, history, cap);
         List<String> commands = new ArrayList<>();
 
         for (SearchResult result : scoredResults) {
@@ -72,10 +77,15 @@ public class FuzzySearcher {
     }
 
     public List<SearchResult> searchWithScores(String query, List<String> history) {
+        return searchWithScores(query, history, 10);
+    }
+
+    public List<SearchResult> searchWithScores(String query, List<String> history, int maxResults) {
         if (query == null || query.isBlank() || history == null || history.isEmpty()) {
             return new ArrayList<>();
         }
 
+        int cap = maxResults <= 0 ? 10 : Math.min(maxResults, 200);
         List<SearchResult> results = new ArrayList<>();
 
         for (String entry : history) {
@@ -88,8 +98,8 @@ public class FuzzySearcher {
                 .reversed()
                 .thenComparing((SearchResult result) -> result.command, Comparator.reverseOrder()));
 
-        if (results.size() > 10) {
-            return new ArrayList<>(results.subList(0, 10));
+        if (results.size() > cap) {
+            return new ArrayList<>(results.subList(0, cap));
         }
 
         return results;

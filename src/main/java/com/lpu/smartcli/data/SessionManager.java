@@ -8,6 +8,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
+import com.lpu.smartcli.utils.AppLogger;
+
 public class SessionManager {
     private final String sessionId;
     private String currentDirectory;
@@ -63,10 +65,10 @@ public class SessionManager {
                 return true;
             }
 
-            System.err.println("ERROR: Directory not found: " + path);
+            AppLogger.getLogger(SessionManager.class).error("Directory not found: {}", path);
             return false;
         } catch (IOException e) {
-            System.err.println("ERROR: " + e.getMessage());
+            AppLogger.getLogger(SessionManager.class).error("Error changing directory: {}", e.getMessage(), e);
             return false;
         }
     }

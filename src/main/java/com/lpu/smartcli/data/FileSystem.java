@@ -10,6 +10,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import com.lpu.smartcli.utils.AppLogger;
+
 public class FileSystem {
     private HashMap<String, String> files = new HashMap<>();
     private Path workingDirectory = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
@@ -37,15 +39,15 @@ public class FileSystem {
             }
 
             if (Files.exists(target)) {
-                System.out.println("File '" + name + "' already exists.");
+                AppLogger.getLogger(FileSystem.class).info("File '{}' already exists.", name);
                 return;
             }
 
             Files.createFile(target);
             files.put(name, "");
-            System.out.println("File '" + name + "' created at " + target);
+            AppLogger.getLogger(FileSystem.class).info("File '{}' created at {}", name, target);
         } catch (IOException e) {
-            System.out.println("Error creating file '" + name + "': " + e.getMessage());
+            AppLogger.getLogger(FileSystem.class).error("Error creating file '{}': {}", name, e.getMessage(), e);
         }
     }
 
@@ -63,7 +65,7 @@ public class FileSystem {
             throwFileNotFound(name);
             return null;
         } catch (IOException e) {
-            System.out.println("Error reading file '" + name + "': " + e.getMessage());
+            AppLogger.getLogger(FileSystem.class).error("Error reading file '{}': {}", name, e.getMessage(), e);
             return null;
         }
     }
@@ -80,9 +82,9 @@ public class FileSystem {
             String safeContent = content == null ? "" : content;
             Files.writeString(target, safeContent);
             files.put(name, safeContent);
-            System.out.println("Written to '" + target + "'.");
+            AppLogger.getLogger(FileSystem.class).info("Written to '{}'", target);
         } catch (IOException e) {
-            System.out.println("Error writing file '" + name + "': " + e.getMessage());
+            AppLogger.getLogger(FileSystem.class).error("Error writing file '{}': {}", name, e.getMessage(), e);
         }
     }
 
@@ -97,9 +99,9 @@ public class FileSystem {
         try {
             Files.delete(target);
             files.remove(name);
-            System.out.println("File '" + name + "' deleted.");
+            AppLogger.getLogger(FileSystem.class).info("File '{}' deleted.", name);
         } catch (IOException e) {
-            System.out.println("Error deleting file '" + name + "': " + e.getMessage());
+            AppLogger.getLogger(FileSystem.class).error("Error deleting file '{}': {}", name, e.getMessage(), e);
         }
     }
 
@@ -119,7 +121,7 @@ public class FileSystem {
                     .sorted(Comparator.naturalOrder())
                     .toList());
         } catch (IOException e) {
-            System.out.println("Error listing files in '" + workingDirectory + "': " + e.getMessage());
+            AppLogger.getLogger(FileSystem.class).error("Error listing files in '{}': {}", workingDirectory, e.getMessage(), e);
             return new ArrayList<>();
         }
     }
@@ -133,7 +135,7 @@ public class FileSystem {
             try {
                 Files.deleteIfExists(resolvePath(name));
             } catch (IOException e) {
-                System.out.println("Error deleting file '" + name + "': " + e.getMessage());
+                AppLogger.getLogger(FileSystem.class).error("Error deleting file '{}': {}", name, e.getMessage(), e);
             }
         }
 
